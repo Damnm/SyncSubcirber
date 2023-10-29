@@ -1,4 +1,20 @@
-﻿
+﻿using EPAY.ETC.Core.Models.Constants;
+using EPAY.ETC.Core.Publisher.DependencyInjectionExtensions;
+using EPAY.ETC.Core.RabbitMQ.Common.Enums;
+using EPAY.ETC.Core.RabbitMQ.DependencyInjectionExtensions;
+using EPAY.ETC.Core.Subscriber.Common.Options;
+using EPAY.ETC.Core.Subscriber.DependencyInjectionExtensions;
+using EPAY.ETC.Core.Subscriber.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.Configs;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using NLog;
+using NLog.Extensions.Logging;
+using System.Text;
 
 HostBuilder builder = new HostBuilder();
 
@@ -13,7 +29,7 @@ builder.ConfigureAppConfiguration((hostingContext, config) =>
 builder.ConfigureServices((hostContext, services) =>
 {
     SubscriberOptionModel? subscriberOptions = hostContext.Configuration.GetSection("SubscriberConfiguration").Get<SubscriberOptionModel>();
-    services.Configure<List<PublishOption>>(hostContext.Configuration.GetSection("PublisherConfigurations"));
+
     services.AddLogging(logBuilder =>
     {
         logBuilder.ClearProviders();
@@ -21,13 +37,11 @@ builder.ConfigureServices((hostContext, services) =>
         logBuilder.AddNLog(hostContext.Configuration);
     });
 
-    services.AddScoped<IDeviceStatusService, DeviceStatusService>();
-
     services.AddRabbitMQCore(hostContext.Configuration);
     services.AddRabbitMQSubscriber();
-    services.AddRabbitMQPublisher();
-    var multiplexer = Redis.ConnectionMultiplexer.Connect(hostContext.Configuration.GetSection("RedisSettings").GetValue<string>("ConnectionString") ?? "localhost:6379");
-    services.AddSingleton(multiplexer.GetDatabase());
+
+    // Infrastructure config
+    services.AddInfrastructure(hostContext.Configuration);
     services.AddAutoMapper(typeof(Program));
     var serviceProvider = services.BuildServiceProvider();
 
@@ -41,7 +55,8 @@ builder.ConfigureServices((hostContext, services) =>
 
     // Create new Subscriber
     ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
-    IDeviceStatusService deviceStatusService = serviceProvider.GetRequiredService<IDeviceStatusService>();
+    ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
+    ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
     subscriber.CreateSubscriber(option =>
     {
@@ -53,7 +68,8 @@ builder.ConfigureServices((hostContext, services) =>
 
         /***** Exchange options *******/
         if (option.ExchangeOption == null)
-            option.ExchangeOption = new EPAY.ETC.Core.Subscriber.Common.Options.ExchangeOption();
+            option.ExchangeOption = new ExchangeOption();
+
         option.ExchangeOption.ExchangeName = subscriberOptions?.ExchangeOption?.ExchangeName ?? string.Empty;
         option.ExchangeOption.ExchangeType = subscriberOptions?.ExchangeOption?.ExchangeType ?? ExchangeTypeEnum.headers;
         option.ExchangeOption.Durable = subscriberOptions?.ExchangeOption?.Durable ?? true;
@@ -64,29 +80,53 @@ builder.ConfigureServices((hostContext, services) =>
         /***** Queue options *******/
         foreach (var queueOption in subscriberOptions?.QueueOptions ?? new List<QueueOption>())
         {
-            option.QueueOptions.Add(new EPAY.ETC.Core.Subscriber.Common.Options.QueueOption()
+            option.QueueOptions.Add(new QueueOption()
             {
                 QueueName = queueOption.QueueName ?? string.Empty,
                 RoutingKey = queueOption.RoutingKey,
                 BindArguments = queueOption.BindArguments ?? new Dictionary<string, object>(),
                 DeadLetterExchange = queueOption.DeadLetterExchange ?? string.Empty,
                 DeadLetterRoutingKey = queueOption.DeadLetterRoutingKey ?? string.Empty,
-                MessageTTL = queueOption?.MessageTTL ?? -1L,
+                //MessageTTL = queueOption?.MessageTTL ?? -1L,
             });
         }
         /***** End queue options *******/
     });
 
-    Console.WriteLine($"Start program Receive message in env {hostContext.HostingEnvironment} from queue {string.Join(", ", subscriberOptions?.QueueOptions.Select(x => x.QueueName) ?? new List<string>())} and exchange {subscriberOptions?.ExchangeOption?.ExchangeName}");
-    Console.WriteLine();
+    _logger.LogInformation($"Start program Receive message in env {hostContext.HostingEnvironment} from queue {string.Join(", ", subscriberOptions?.QueueOptions.Select(x => x.QueueName) ?? new List<string>())} and exchange {subscriberOptions?.ExchangeOption?.ExchangeName}");
 
     subscriber.Subscribe(async opt =>
     {
-        Console.WriteLine($"Time {DateTime.Now.ToLocalTime()} message {opt.Message}");
+        string msgType = string.Empty;
 
-        var data = await deviceStatusService.DeviceStatusSubscriberAsync(opt.Message);
+        if (opt.Headers != null)
+        {
+            if (opt.Headers.TryGetValue("MsgType", out object? bytes) && bytes != null)
+            {
+                msgType = Encoding.UTF8.GetString((byte[])bytes);
+            }
+        }
 
-        if (data)
+        string laneId = string.Empty;
+
+        if (opt.Headers != null)
+        {
+            if (opt.Headers.TryGetValue(CoreConstant.ENVIRONMENT_LANE, out object? laneIdBytes) && laneIdBytes != null)
+            {
+                laneId = Encoding.UTF8.GetString((byte[])laneIdBytes);
+                Environment.SetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE, laneId);
+            }
+        }
+
+        Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} {opt.Message}");
+
+        var result = await syncSubcriberService.SyncSubcriber(opt.Message, msgType);
+
+        await Task.Yield();
+
+        Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} Processed done");
+
+        if (result)
             subscriber.Acknowledge(opt.DeliveryTag);
         else
             subscriber.NotAcknowledge(opt.DeliveryTag);

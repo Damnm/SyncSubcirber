@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EPAY.ETC.Core.Sync-Subcribe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Commons", "Commons", "{997BA21E-22B4-48B6-9120-BE59F7DCC255}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPAY.ETC.Core.Sync-Subcriber.Core", "EPAY.ETC.Core.Sync-Subcriber.Core\EPAY.ETC.Core.Sync-Subcriber.Core.csproj", "{FD90EDF8-8E66-4B4C-8501-9B31AA4210A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EPAY.ETC.Core.Sync-Subcriber.Core", "EPAY.ETC.Core.Sync-Subcriber.Core\EPAY.ETC.Core.Sync-Subcriber.Core.csproj", "{FD90EDF8-8E66-4B4C-8501-9B31AA4210A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EPAY.ETC.Core.Sync-Subcriber.Infrastructure", "EPAY.ETC.Core.Sync-Subcriber.Infrastructure\EPAY.ETC.Core.Sync-Subcriber.Infrastructure.csproj", "{ED0B9546-9EC7-48CD-8124-EA79923DEE3E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EPAY.ETC.Core.Sync-Subcriber.Infrastructure", "EPAY.ETC.Core.Sync-Subcriber.Infrastructure\EPAY.ETC.Core.Sync-Subcriber.Infrastructure.csproj", "{ED0B9546-9EC7-48CD-8124-EA79923DEE3E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
