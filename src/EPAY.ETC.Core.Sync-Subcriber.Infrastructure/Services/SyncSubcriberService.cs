@@ -26,7 +26,9 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             _logger.LogInformation($"Executing {nameof(SyncSubcriber)} method...");
             try
             {
-                
+                var paymentStatusId = Guid.Parse(message);
+                var transaction = _syncService.GetDetailsAsync(paymentStatusId).Result;
+                return true;
             }
             catch (Exception ex)
             {
