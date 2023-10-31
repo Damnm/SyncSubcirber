@@ -120,7 +120,7 @@ builder.ConfigureServices((hostContext, services) =>
 
         Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} {opt.Message}");
 
-        var result = await syncSubcriberService.SyncSubcriber(opt.Message, msgType);
+        var result = await syncSubcriberService.SyncSubcriber(opt.Message);
 
         await Task.Yield();
 
