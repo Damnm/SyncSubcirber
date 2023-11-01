@@ -28,7 +28,7 @@ builder.ConfigureAppConfiguration((hostingContext, config) =>
     config.AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true);
 });
 
-builder.ConfigureServices((hostContext, services) =>
+builder.ConfigureServices(async (hostContext, services) =>
 {
     SubscriberOptionModel? subscriberOptions = hostContext.Configuration.GetSection("SubscriberConfiguration").Get<SubscriberOptionModel>();
 
@@ -58,85 +58,89 @@ builder.ConfigureServices((hostContext, services) =>
         configFile = $"nlog.config";
     }
     LogManager.Setup().LoadConfigurationFromFile(configFile);
-
-    // Create new Subscriber
-    ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
     ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
-    ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+    ISyncService syncService = serviceProvider.GetRequiredService<ISyncService>();
 
-    subscriber.CreateSubscriber(option =>
-    {
-        /***** Common options *******/
-        option.CreateExchangeQueue = subscriberOptions?.CreateExchangeQueue ?? false;
-        option.ExchangeOrQueue = subscriberOptions?.ExchangeOrQueue ?? ExchangeOrQueueEnum.Queue;
-        option.AutoAck = subscriberOptions?.AutoAck ?? true;
-        /***** End common options *******/
+    var data = await syncService.GetDetailsAsync(Guid.Parse("f6f95add-a5af-48c4-9648-b6ab4d0a397d"));
+    Console.WriteLine(data);
+    // Create new Subscriber
+    //ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
+    //ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
+    //ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
-        /***** Exchange options *******/
-        if (option.ExchangeOption == null)
-            option.ExchangeOption = new ExchangeOption();
+    //subscriber.CreateSubscriber(option =>
+    //{
+    //    /***** Common options *******/
+    //    option.CreateExchangeQueue = subscriberOptions?.CreateExchangeQueue ?? false;
+    //    option.ExchangeOrQueue = subscriberOptions?.ExchangeOrQueue ?? ExchangeOrQueueEnum.Queue;
+    //    option.AutoAck = subscriberOptions?.AutoAck ?? true;
+    //    /***** End common options *******/
 
-        option.ExchangeOption.ExchangeName = subscriberOptions?.ExchangeOption?.ExchangeName ?? string.Empty;
-        option.ExchangeOption.ExchangeType = subscriberOptions?.ExchangeOption?.ExchangeType ?? ExchangeTypeEnum.headers;
-        option.ExchangeOption.Durable = subscriberOptions?.ExchangeOption?.Durable ?? true;
-        option.ExchangeOption.AutoDelete = subscriberOptions?.ExchangeOption?.AutoDelete ?? false;
-        option.ExchangeOption.AlternateExchange = subscriberOptions?.ExchangeOption?.AlternateExchange ?? string.Empty;
-        /***** End exchange options *******/
+    //    /***** Exchange options *******/
+    //    if (option.ExchangeOption == null)
+    //        option.ExchangeOption = new ExchangeOption();
 
-        /***** Queue options *******/
-        foreach (var queueOption in subscriberOptions?.QueueOptions ?? new List<QueueOption>())
-        {
-            option.QueueOptions.Add(new QueueOption()
-            {
-                QueueName = queueOption.QueueName ?? string.Empty,
-                RoutingKey = queueOption.RoutingKey,
-                BindArguments = queueOption.BindArguments ?? new Dictionary<string, object>(),
-                DeadLetterExchange = queueOption.DeadLetterExchange ?? string.Empty,
-                DeadLetterRoutingKey = queueOption.DeadLetterRoutingKey ?? string.Empty,
-                //MessageTTL = queueOption?.MessageTTL ?? -1L,
-            });
-        }
-        /***** End queue options *******/
-    });
+    //    option.ExchangeOption.ExchangeName = subscriberOptions?.ExchangeOption?.ExchangeName ?? string.Empty;
+    //    option.ExchangeOption.ExchangeType = subscriberOptions?.ExchangeOption?.ExchangeType ?? ExchangeTypeEnum.headers;
+    //    option.ExchangeOption.Durable = subscriberOptions?.ExchangeOption?.Durable ?? true;
+    //    option.ExchangeOption.AutoDelete = subscriberOptions?.ExchangeOption?.AutoDelete ?? false;
+    //    option.ExchangeOption.AlternateExchange = subscriberOptions?.ExchangeOption?.AlternateExchange ?? string.Empty;
+    //    /***** End exchange options *******/
 
-    _logger.LogInformation($"Start program Receive message in env {hostContext.HostingEnvironment} from queue {string.Join(", ", subscriberOptions?.QueueOptions.Select(x => x.QueueName) ?? new List<string>())} and exchange {subscriberOptions?.ExchangeOption?.ExchangeName}");
+    //    /***** Queue options *******/
+    //    foreach (var queueOption in subscriberOptions?.QueueOptions ?? new List<QueueOption>())
+    //    {
+    //        option.QueueOptions.Add(new QueueOption()
+    //        {
+    //            QueueName = queueOption.QueueName ?? string.Empty,
+    //            RoutingKey = queueOption.RoutingKey,
+    //            BindArguments = queueOption.BindArguments ?? new Dictionary<string, object>(),
+    //            DeadLetterExchange = queueOption.DeadLetterExchange ?? string.Empty,
+    //            DeadLetterRoutingKey = queueOption.DeadLetterRoutingKey ?? string.Empty,
+    //            //MessageTTL = queueOption?.MessageTTL ?? -1L,
+    //        });
+    //    }
+    //    /***** End queue options *******/
+    //});
 
-    subscriber.Subscribe(async opt =>
-    {
-        string msgType = string.Empty;
+    //_logger.LogInformation($"Start program Receive message in env {hostContext.HostingEnvironment} from queue {string.Join(", ", subscriberOptions?.QueueOptions.Select(x => x.QueueName) ?? new List<string>())} and exchange {subscriberOptions?.ExchangeOption?.ExchangeName}");
 
-        if (opt.Headers != null)
-        {
-            if (opt.Headers.TryGetValue("MsgType", out object? bytes) && bytes != null)
-            {
-                msgType = Encoding.UTF8.GetString((byte[])bytes);
-            }
-        }
+    //subscriber.Subscribe(async opt =>
+    //{
+    //    string msgType = string.Empty;
 
-        string laneId = string.Empty;
+    //    if (opt.Headers != null)
+    //    {
+    //        if (opt.Headers.TryGetValue("MsgType", out object? bytes) && bytes != null)
+    //        {
+    //            msgType = Encoding.UTF8.GetString((byte[])bytes);
+    //        }
+    //    }
 
-        if (opt.Headers != null)
-        {
-            if (opt.Headers.TryGetValue(CoreConstant.ENVIRONMENT_LANE, out object? laneIdBytes) && laneIdBytes != null)
-            {
-                laneId = Encoding.UTF8.GetString((byte[])laneIdBytes);
-                Environment.SetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE, laneId);
-            }
-        }
+    //    string laneId = string.Empty;
 
-        Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} {opt.Message}");
+    //    if (opt.Headers != null)
+    //    {
+    //        if (opt.Headers.TryGetValue(CoreConstant.ENVIRONMENT_LANE, out object? laneIdBytes) && laneIdBytes != null)
+    //        {
+    //            laneId = Encoding.UTF8.GetString((byte[])laneIdBytes);
+    //            Environment.SetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE, laneId);
+    //        }
+    //    }
 
-        var result = await syncSubcriberService.SyncSubcriber(opt.Message);
+    //    Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} {opt.Message}");
 
-        await Task.Yield();
+    //    var result = await syncSubcriberService.SyncSubcriber(opt.Message);
 
-        Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} Processed done");
+    //    await Task.Yield();
 
-        if (result)
-            subscriber.Acknowledge(opt.DeliveryTag);
-        else
-            subscriber.NotAcknowledge(opt.DeliveryTag);
-    });
+    //    Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} Processed done");
+
+    //    if (result)
+    //        subscriber.Acknowledge(opt.DeliveryTag);
+    //    else
+    //        subscriber.NotAcknowledge(opt.DeliveryTag);
+    //});
 });
 
 
