@@ -8,6 +8,8 @@ using EPAY.ETC.Core.Subscriber.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.Configs;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -43,6 +45,10 @@ builder.ConfigureServices((hostContext, services) =>
     // Infrastructure config
     services.AddInfrastructure(hostContext.Configuration);
     services.AddAutoMapper(typeof(Program));
+
+    services.AddDbContext<CoreDbContext>(
+        opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
+
     var serviceProvider = services.BuildServiceProvider();
 
     // Load nlog config

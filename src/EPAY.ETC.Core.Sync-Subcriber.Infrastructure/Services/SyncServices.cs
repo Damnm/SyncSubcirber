@@ -14,8 +14,15 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
     {
         private readonly CoreDbContext _dbContext;
 
+        public SyncServices(CoreDbContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
         public async Task<TransactionSyncModel> GetDetailsAsync(Guid paymentId)
         {
+
+            var test = await _dbContext.Fees.ToListAsync();
+
             var transaction = await _dbContext.PaymentStatuses
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
@@ -47,7 +54,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                TransactionStatus = p.Status.ToString(),
                PaymentId = p.PaymentId 
            })
-            .FirstOrDefaultAsync();
+           .FirstOrDefaultAsync();
 
             return transaction;
         }

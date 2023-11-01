@@ -10,11 +10,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
     [ExcludeFromCodeCoverage]
     public class CoreDbContext : DbContext
     {
-        private readonly IConfiguration _configuration;
-        public CoreDbContext(DbContextOptions options,
-            IConfiguration configuration) : base(options)
+        public CoreDbContext(DbContextOptions options) : base(options)
         {
-            _configuration = configuration;
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         }
         public virtual DbSet<FeeModel> Fees { get; set; }
@@ -75,7 +72,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseNpgsql(_configuration.GetConnectionString("DefaultConnection"));
         }
     }
 }
