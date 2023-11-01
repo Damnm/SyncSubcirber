@@ -14,12 +14,12 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
     {
         private readonly CoreDbContext _dbContext;
 
-        public async Task<TransactionSyncModel> GetDetailsAsync(Guid paymentStatusId)
+        public async Task<TransactionSyncModel> GetDetailsAsync(Guid paymentId)
         {
             var transaction = await _dbContext.PaymentStatuses
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
-           .Where(p => p.Id == paymentStatusId)
+           .Where(p => p.PaymentId == paymentId)
            .Select(p => new TransactionSyncModel
            {
                EmployeeId = p.Payment.Fee.EmployeeId,
@@ -45,6 +45,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                PaymentDate = p.PaymentDate,
                TransactionId = p.TransactionId,
                TransactionStatus = p.Status.ToString(),
+               PaymentId = p.PaymentId 
            })
             .FirstOrDefaultAsync();
 

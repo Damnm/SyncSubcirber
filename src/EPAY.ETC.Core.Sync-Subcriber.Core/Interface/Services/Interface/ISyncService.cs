@@ -9,6 +9,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface
 {
     public interface ISyncService
     {
-        Task<TransactionSyncModel> GetDetailsAsync(Guid paymentStatusId);
+        Task<TransactionSyncModel> GetDetailsAsync(Guid paymentId);
     }
 }

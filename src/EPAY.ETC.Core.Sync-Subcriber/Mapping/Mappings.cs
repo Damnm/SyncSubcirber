@@ -14,8 +14,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Mapping
                .ReverseMap();
             CreateMap<PaymentStatusModel, TransactionSyncModel>()
                 .ReverseMap();
-            
         }
-
     }
 }

@@ -4,9 +4,12 @@ using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Publisher.Common.Options;
 using EPAY.ETC.Core.RabbitMQ.Common.Events;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Sync;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
@@ -26,10 +29,20 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             _logger.LogInformation($"Executing {nameof(SyncSubcriber)} method...");
             try
             {
-                var paymentStatusId = Guid.Parse(message);
-                var transaction = _syncService.GetDetailsAsync(paymentStatusId).Result;
-                return true;
-            }
+                var data = JsonSerializer.Deserialize<PaymentStatusModel>(message);
+                var paymentId = data.PaymentId;
+                var transaction = await _syncService.GetDetailsAsync(paymentId);
+                if (transaction != null)
+                {
+                    Console.WriteLine($": {transaction.PaymentId}");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+                //return true;
+            }   
             catch (Exception ex)
             {
                 _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}");
