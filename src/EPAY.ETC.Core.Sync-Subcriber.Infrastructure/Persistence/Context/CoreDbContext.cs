@@ -2,6 +2,7 @@
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.Extensions.Configuration;
 using System.Diagnostics.CodeAnalysis;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
@@ -9,9 +10,11 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
     [ExcludeFromCodeCoverage]
     public class CoreDbContext : DbContext
     {
-        public CoreDbContext() { }
-        public CoreDbContext(DbContextOptions options) : base(options)
+        private readonly IConfiguration _configuration;
+        public CoreDbContext(DbContextOptions options,
+            IConfiguration configuration) : base(options)
         {
+            _configuration = configuration;
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         }
         public virtual DbSet<FeeModel> Fees { get; set; }
@@ -72,6 +75,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
+            optionsBuilder.UseNpgsql(_configuration.GetConnectionString("DefaultConnection"));
         }
     }
 }
