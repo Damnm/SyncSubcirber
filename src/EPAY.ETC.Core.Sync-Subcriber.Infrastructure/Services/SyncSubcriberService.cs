@@ -1,15 +1,8 @@
-﻿using EPAY.ETC.Core.Models.Devices;
-using EPAY.ETC.Core.Models.Enums;
-
-using EPAY.ETC.Core.Publisher.Common.Options;
-using EPAY.ETC.Core.RabbitMQ.Common.Events;
+﻿using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Sync;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
