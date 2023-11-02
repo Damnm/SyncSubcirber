@@ -67,6 +67,7 @@ builder.ConfigureServices(async (hostContext, services) =>
     //Console.WriteLine(data);
     //Create new Subscriber
     ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
+    ISyncService syncService = serviceProvider.GetRequiredService<ISyncService>();
     ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
     ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
