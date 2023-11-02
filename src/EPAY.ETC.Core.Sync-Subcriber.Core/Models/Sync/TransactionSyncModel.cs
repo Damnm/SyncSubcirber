@@ -29,11 +29,11 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Sync
             public string? TicketTypeId { get; set; }
             public double Amount { get; set; }
             public int Duration { get; set; }
-            public string? PaymentMethod { get; set; }
+            public PaymentMethodEnum? PaymentMethod { get; set; }
             public Guid PaymentId { get; set; }
             public DateTime PaymentDate { get; set;}
             public string? TransactionId { get; set; }
-            public string? TransactionStatus { get; set; }
+            public PaymentStatusEnum TransactionStatus { get; set; }
 
         }
     }

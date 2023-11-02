@@ -21,7 +21,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         public async Task<TransactionSyncModel> GetDetailsAsync(Guid paymentId)
         {
 
-            var paymentStatus = await _dbContext.PaymentStatuses.AsQueryable().FirstOrDefaultAsync(x=>x.Id == paymentId);
+            //var test = await _dbContext.Fees.ToListAsync();
 
             var transaction = await _dbContext.PaymentStatuses
                 .Include(p => p.Payment)
@@ -48,10 +48,10 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                TicketTypeId = p.Payment.Fee.TicketTypeId,
                Amount = p.Payment.Amount,
                Duration = p.Payment.Duration,
-               PaymentMethod = p.PaymentMethod.ToString(),
+               PaymentMethod = p.PaymentMethod,
                PaymentDate = p.PaymentDate,
                TransactionId = p.TransactionId,
-               TransactionStatus = p.Status.ToString(),
+               TransactionStatus = p.Status,
                PaymentId = p.PaymentId 
            })
            .FirstOrDefaultAsync();
