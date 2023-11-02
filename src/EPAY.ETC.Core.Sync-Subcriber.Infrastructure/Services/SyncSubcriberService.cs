@@ -34,14 +34,17 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                 var transaction = await _syncService.GetDetailsAsync(paymentId);
                 if (transaction != null)
                 {
-                    Console.WriteLine($": {transaction.PaymentId}");
-                    return true;
+                    if(transaction.TransactionStatus == PaymentStatusEnum.Paid)
+                    {
+                      Console.WriteLine($": {transaction.PaymentId}");
+                      return true;
+                    }   
                 }
                 else
                 {
                     return false;
                 }
-                //return true;
+                return true;
             }   
             catch (Exception ex)
             {

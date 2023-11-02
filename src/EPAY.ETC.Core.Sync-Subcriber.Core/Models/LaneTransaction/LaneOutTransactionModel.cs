@@ -70,5 +70,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         public DateTime? LaneInDate { set; get; }
         [Column(TypeName = "varchar")]
         public string? LaneInRecogPlate { set; get; }
+        public int InvoiceExportStatus { set; get; }
+        public int InvoiceExportCount {  set; get; }
+        public DateTime InvoiceExportLastTime {  set; get; }
     }
 }
