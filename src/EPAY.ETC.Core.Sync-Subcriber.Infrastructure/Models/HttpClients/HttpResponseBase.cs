@@ -4,12 +4,12 @@
     {
         public object? Data { get; set; }
         public bool Succeeded { get; set; } = false;
-        public List<HttpError>? Errors { get; set; } = null; 
+        public List<HttpError>? Errors { get; set; } = null;
     }
 
     public class HttpError
     {
-        public string? Message;
-        public int Code;
+        public string? Message { set; get; }
+        public int Code { set; get; } = 0;
     }
 }

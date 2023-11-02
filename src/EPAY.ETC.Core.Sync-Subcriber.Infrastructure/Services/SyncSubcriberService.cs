@@ -27,9 +27,10 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             _configuration = configuration;
         }
 
-        public async Task<bool> SyncSubcriber(string? message)
+        public async Task<bool> SyncSubcriber(string message)
         {
             _logger.LogInformation($"Executing {nameof(SyncSubcriber)} method...");
+            bool result = false;
             try
             {
                 var data = JsonSerializer.Deserialize<PaymentStatusModel>(message);
@@ -44,23 +45,24 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
                     if (response.Succeeded)
                     {
-                      
+                      result = true;
                     }
                     else
                     {
-                        //_logger.LogError($"Sync data failed: {response.Message}");
-
+                        _logger.LogError($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
                     }
                 }
                 else
                 {
-                    return false;
+                    _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found");
                 }
+
+                return result;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}");
-                return false;
+                return result;
             }
         }
     }
