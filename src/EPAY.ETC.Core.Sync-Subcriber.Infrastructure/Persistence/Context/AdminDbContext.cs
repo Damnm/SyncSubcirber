@@ -13,7 +13,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
 {
     public class AdminDbContext : DbContext
     {
-        public AdminDbContext(DbContextOptions options) : base(options)
+        public AdminDbContext(DbContextOptions<AdminDbContext> options) : base(options)
         {
 
         }
