@@ -1,15 +1,12 @@
-﻿using EPAY.ETC.Core.Models.Devices;
-using EPAY.ETC.Core.Models.Enums;
-
-using EPAY.ETC.Core.Publisher.Common.Options;
-using EPAY.ETC.Core.RabbitMQ.Common.Events;
+﻿using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Sync;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Json;
+using System.Net.Http;
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
@@ -17,11 +14,17 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
     {
         private readonly ILogger<SyncSubcriberService> _logger;
         private readonly ISyncService _syncService;
-        
-        public SyncSubcriberService(ILogger<SyncSubcriberService> logger, ISyncService syncServices)
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
+        private const string direction = "out";
+        public SyncSubcriberService(ILogger<SyncSubcriberService> logger,
+            ISyncService syncServices,
+            HttpClient httpClient, IConfiguration configuration)
         {
             _logger = logger;
             _syncService = syncServices;
+            _httpClient = httpClient;
+            _configuration = configuration;
         }
 
         public async Task<bool> SyncSubcriber(string? message)
@@ -31,18 +34,29 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             {
                 var data = JsonSerializer.Deserialize<PaymentStatusModel>(message);
                 var paymentId = data.PaymentId;
-                var transaction = await _syncService.GetDetailsAsync(paymentId);
+                var transaction = await _syncService.GetDetailsAsync(paymentId); // should be return LaneTransactionRequestModel
                 if (transaction != null)
                 {
                     Console.WriteLine($": {transaction.PaymentId}");
-                    return true;
+                    //call admin api /LaneTransaction/Stations/{stationId}/v1/lanes/{direction}
+                    var httpContent = new StringContent(JsonSerializer.Serialize(transaction), Encoding.UTF8, "application/json");
+                    var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}/LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}", httpContent));
+
+                    if (response.Succeeded)
+                    {
+                      
+                    }
+                    else
+                    {
+                        //_logger.LogError($"Sync data failed: {response.Message}");
+
+                    }
                 }
                 else
                 {
                     return false;
                 }
-                //return true;
-            }   
+            }
             catch (Exception ex)
             {
                 _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}");

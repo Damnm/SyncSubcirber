@@ -21,7 +21,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         public async Task<TransactionSyncModel> GetDetailsAsync(Guid paymentId)
         {
 
-            var test = await _dbContext.Fees.ToListAsync();
+            var paymentStatus = await _dbContext.PaymentStatuses.AsQueryable().FirstOrDefaultAsync(x=>x.Id == paymentId);
 
             var transaction = await _dbContext.PaymentStatuses
                 .Include(p => p.Payment)

@@ -47,9 +47,9 @@ builder.ConfigureServices(async (hostContext, services) =>
     services.AddAutoMapper(typeof(Program));
 
     services.AddDbContext<CoreDbContext>(
-        opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
-    services.AddDbContext<AdminDbContext>(
-        opt => opt.UseSqlServer(hostContext.Configuration.GetConnectionString("AdminDefaultConnection")));
+        opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));x
+
+    services.AddHttpClient();
 
     var serviceProvider = services.BuildServiceProvider();
 

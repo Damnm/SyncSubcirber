@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="EPAY.ETC.Core.Models" Version="2023.10.22.1045" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
 </Project>
