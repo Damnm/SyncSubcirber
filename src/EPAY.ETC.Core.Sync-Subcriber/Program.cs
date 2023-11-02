@@ -28,7 +28,7 @@ builder.ConfigureAppConfiguration((hostingContext, config) =>
     config.AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true);
 });
 
-builder.ConfigureServices((hostContext, services) =>
+builder.ConfigureServices(async (hostContext, services) =>
 {
     SubscriberOptionModel? subscriberOptions = hostContext.Configuration.GetSection("SubscriberConfiguration").Get<SubscriberOptionModel>();
 
@@ -48,6 +48,8 @@ builder.ConfigureServices((hostContext, services) =>
 
     services.AddDbContext<CoreDbContext>(
         opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
+    services.AddDbContext<AdminDbContext>(
+        opt => opt.UseSqlServer(hostContext.Configuration.GetConnectionString("AdminDefaultConnection")));
 
     var serviceProvider = services.BuildServiceProvider();
 
@@ -58,9 +60,14 @@ builder.ConfigureServices((hostContext, services) =>
         configFile = $"nlog.config";
     }
     LogManager.Setup().LoadConfigurationFromFile(configFile);
+    //ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
+    //ISyncService syncService = serviceProvider.GetRequiredService<ISyncService>();
 
-    // Create new Subscriber
+    //var data = await syncService.GetDetailsAsync(Guid.Parse("f6f95add-a5af-48c4-9648-b6ab4d0a397d"));
+    //Console.WriteLine(data);
+    //Create new Subscriber
     ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
+    ISyncService syncService = serviceProvider.GetRequiredService<ISyncService>();
     ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
     ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
