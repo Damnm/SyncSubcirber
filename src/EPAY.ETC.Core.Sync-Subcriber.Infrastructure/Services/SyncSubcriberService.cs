@@ -38,14 +38,17 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                 var transaction = await _syncService.GetDetailsAsync(paymentId); // should be return LaneTransactionRequestModel
                 if (transaction != null)
                 {
-                    Console.WriteLine($": {transaction.PaymentId}");
+                    Console.WriteLine($": {transaction}");
                     //call admin api /LaneTransaction/Stations/{stationId}/v1/lanes/{direction}
                     var httpContent = new StringContent(JsonSerializer.Serialize(transaction), Encoding.UTF8, "application/json");
-                    var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}/LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}", httpContent));
+                    var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(
+                        await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}/LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}", 
+                        httpContent));
 
                     if (response.Succeeded)
                     {
-                      result = true;
+                        result = true;
+                        _logger.LogError("Sync data success");
                     }
                     else
                     {

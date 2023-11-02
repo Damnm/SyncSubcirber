@@ -1,9 +1,11 @@
 ﻿using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Sync;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,43 +20,30 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         {
             _dbContext = dbContext;
         }
-        public async Task<TransactionSyncModel> GetDetailsAsync(Guid paymentId)
+        public async Task<VehicleLaneTransactionRequestModel> GetDetailsAsync(Guid paymentId)
         {
-
-            //var test = await _dbContext.Fees.ToListAsync();
-
-            var transaction = await _dbContext.PaymentStatuses
+            var transaction = await _dbContext.PaymentStatuses.Where(x => x.PaymentId == paymentId)
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
-           .Where(p => p.PaymentId == paymentId)
-           .Select(p => new TransactionSyncModel
+           .Select(p => new VehicleLaneTransactionRequestModel
            {
-               EmployeeId = p.Payment.Fee.EmployeeId,
-               LaneInId = p.Payment.Fee.LaneInId,
-               LaneOutId = p.Payment.Fee.LaneOutId,
-               LaneInDate = p.Payment.Fee.LaneInDate,
-               LaneOutDate = p.Payment.Fee.LaneOutDate,
-               ShiftId = p.Payment.Fee.ShiftId,
-               RFID = p.Payment.Fee.RFID,
-               CustomVehicleTypeId = p.Payment.Fee.CustomVehicleTypeId,
-               VehicleType = p.Payment.VehicleType,
-               PlateNumber = p.Payment.Fee.PlateNumber,
-               PlateColour = p.Payment.Fee.PlateColour,
-               LaneInPlateNumberPhotoUrl = p.Payment.Fee.LaneInPlateNumberPhotoUrl,
-               LaneInVehiclePhotoUrl = p.Payment.Fee.LaneInVehiclePhotoUrl,
-               LaneOutPlateNumberPhotoUrl = p.Payment.Fee.LaneOutPlateNumberPhotoUrl,
-               LaneOutVehiclePhotoUrl = p.Payment.Fee.LaneOutVehiclePhotoUrl,
-               TicketId = p.Payment.Fee.TicketId,
-               TicketTypeId = p.Payment.Fee.TicketTypeId,
-               Amount = p.Payment.Amount,
-               Duration = p.Payment.Duration,
-               PaymentMethod = p.PaymentMethod,
-               PaymentDate = p.PaymentDate,
-               TransactionId = p.TransactionId,
-               TransactionStatus = p.Status,
-               PaymentId = p.PaymentId 
-           })
-           .FirstOrDefaultAsync();
+               LaneInTransaction = null,
+               LaneOutTransaction = new VehicleLaneOutTransactionRequestModel()
+               {
+                   TransactionId = p.TransactionId,
+                   StationId = "",
+                   LaneId = "",
+                   EmployeeId = "",
+                   LaneOutDate = DateTime.Now,
+                   ShiftId = p.Payment.Fee.ShiftId.ToString(),
+                   IsOCRSuccessful = false,
+                   VehicleDetails = new VehicleLaneOutDetailRequestModel { },
+                   Payment = new VehicleLaneOutPaymentRequestModel { },
+                   TCPTransactions = null, //List<TCPTransactionRequestModel>? 
+                   VETCRequest = new VETCLaneOutRequestModel { },
+                   VETCResponse = new VETCLaneOutResponseModel { }
+               },
+           }).FirstOrDefaultAsync();
 
             return transaction;
         }

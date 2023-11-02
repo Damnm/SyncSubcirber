@@ -6,23 +6,14 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
 {
     public class VehicleLaneOutTransactionRequestModel
     {
-        [Required(ErrorMessage = "TransactionId is required"), MaxLength(25)]
         public string TransactionId { set; get; }
-        [MaxLength(2)]
         public string StationId { set; get; }
-        [Required(ErrorMessage = "LaneId is required"), MaxLength(4)]
         public string LaneId { set; get; }
-        [Required(ErrorMessage = "EmployeeId is required"), MaxLength(6)]
         public string EmployeeId { set; get; }
-        [Required(ErrorMessage = "LaneOutDate is required")]
         public DateTime LaneOutDate { set; get; }
-        [Required(ErrorMessage = "ShiftId is required"), MaxLength(6)]
         public string ShiftId { set; get; }
-        [Required(ErrorMessage = "IsOCRSuccessful is required")]
         public bool IsOCRSuccessful { set; get; }
-        [Required(ErrorMessage = "VehicleDetails is required")]
         public VehicleLaneOutDetailRequestModel VehicleDetails { set; get; }
-        [Required(ErrorMessage = "Payment is required")]
         public VehicleLaneOutPaymentRequestModel Payment { set; get; }
         public List<TCPTransactionRequestModel>? TCPTransactions { get; set; }
         public VETCLaneOutRequestModel? VETCRequest { set; get; }
