@@ -10,7 +10,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
     [ExcludeFromCodeCoverage]
     public class CoreDbContext : DbContext
     {
-        public CoreDbContext(DbContextOptions options) : base(options)
+        public CoreDbContext(DbContextOptions<CoreDbContext> options) : base(options)
         {
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         }

@@ -48,8 +48,6 @@ builder.ConfigureServices(async (hostContext, services) =>
 
     services.AddDbContext<CoreDbContext>(
         opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
-    services.AddDbContext<AdminDbContext>(
-        opt => opt.UseSqlServer(hostContext.Configuration.GetConnectionString("AdminDefaultConnection")));
 
     var serviceProvider = services.BuildServiceProvider();
 
