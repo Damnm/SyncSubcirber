@@ -2,6 +2,7 @@
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
@@ -24,10 +25,9 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                LaneOutTransaction = !isLaneIn ? new VehicleLaneOutTransactionRequestModel()
                {
                    TransactionId = p.TransactionId,
-                   StationId = "03",
-                   LaneId = p.Payment.LaneInId,
+                   LaneId = p.Payment.LaneOutId,
                    EmployeeId = p.Payment.Fee.EmployeeId,
-                   LaneOutDate = (DateTime)p.Payment.Fee.LaneOutDate,
+                   LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now,
                    ShiftId = p.Payment.Fee.ShiftId.ToString(),
                    IsOCRSuccessful = false,
                    VehicleDetails = new VehicleLaneOutDetailRequestModel
@@ -46,7 +46,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                        PeriodTicketType = null,
                        ChargeAmount = (int?)p.Payment.Fee.Amount,
                        DurationTime = p.Payment.Duration,
-                       //TransactionType = ,
+                       //TransactionType =  ,
                        IsManual = false,
                        IsUseBarcode = false,
                        TicketId = p.Payment.Fee.TicketId,
@@ -57,9 +57,9 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                        ForceTicketType = null,
                        PaymentMethod = p.PaymentMethod
                    },
-                   TCPTransactions = null, //List<TCPTransactionRequestModel>? 
-                   VETCRequest = new VETCLaneOutRequestModel { },
-                   VETCResponse = new VETCLaneOutResponseModel { }
+                   TCPTransactions = null, 
+                   VETCRequest = null,
+                   VETCResponse = null
                } : null,
            }).FirstOrDefaultAsync();
 
