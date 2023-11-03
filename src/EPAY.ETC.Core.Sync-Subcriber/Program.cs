@@ -47,7 +47,7 @@ builder.ConfigureServices(async (hostContext, services) =>
     services.AddAutoMapper(typeof(Program));
 
     services.AddDbContext<CoreDbContext>(
-        opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));x
+        opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
 
     services.AddHttpClient();
 
@@ -133,7 +133,7 @@ builder.ConfigureServices(async (hostContext, services) =>
 
         Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} {opt.Message}");
 
-        var result = await syncSubcriberService.SyncSubcriber(opt.Message);
+        var result = await syncSubcriberService.SyncSubcriber(opt.Message, msgType);
 
         await Task.Yield();
 

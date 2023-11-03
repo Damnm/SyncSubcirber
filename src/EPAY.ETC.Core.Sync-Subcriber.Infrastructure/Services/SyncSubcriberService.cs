@@ -27,15 +27,15 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             _configuration = configuration;
         }
 
-        public async Task<bool> SyncSubcriber(string message)
+        public async Task<bool> SyncSubcriber(string message, string msgType)
         {
             _logger.LogInformation($"Executing {nameof(SyncSubcriber)} method...");
-            bool result = false;
+            bool result = false, isLaneIn = msgType == "In";
             try
             {
                 var data = JsonSerializer.Deserialize<PaymentStatusModel>(message);
                 var paymentId = data.PaymentId;
-                var transaction = await _syncService.GetDetailsAsync(paymentId); // should be return LaneTransactionRequestModel
+                var transaction = await _syncService.GetLaneModelDetailsAsync(paymentId, isLaneIn); // should be return LaneTransactionRequestModel
                 if (transaction != null)
                 {
                     Console.WriteLine($": {transaction}");
