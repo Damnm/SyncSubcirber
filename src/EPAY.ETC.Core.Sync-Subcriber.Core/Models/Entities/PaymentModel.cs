@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models
+namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
 {
     [Table("Payment")]
     public class PaymentModel : BaseEntity<Guid>

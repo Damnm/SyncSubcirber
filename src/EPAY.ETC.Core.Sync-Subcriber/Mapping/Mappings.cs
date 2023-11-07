@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Sync;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Mapping

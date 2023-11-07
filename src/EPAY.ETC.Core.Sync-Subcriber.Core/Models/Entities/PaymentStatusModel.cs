@@ -2,15 +2,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models
+namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
 {
     [Table("PaymentStatus")]
     public class PaymentStatusModel : BaseEntity<Guid>
     {
         [ForeignKey("PaymentId")]
         public Guid PaymentId { get; set; }
-        public virtual PaymentModel Payment { get; set; }
-
+        public virtual PaymentModel? Payment { get; set; }
         public double Amount { get; set; }
 
         [MaxLength(10)]
@@ -26,5 +25,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models
 
         [MaxLength(255)]
         public string? Reason { get; set; }
+
     }
 }

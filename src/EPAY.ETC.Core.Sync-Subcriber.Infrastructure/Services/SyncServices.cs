@@ -2,6 +2,8 @@
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Npgsql.PostgresTypes;
 using System.Globalization;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
@@ -9,13 +11,23 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
     public class SyncServices : ISyncService
     {
         private readonly CoreDbContext _dbContext;
+        private readonly IConfiguration _configuration;
 
-        public SyncServices(CoreDbContext dbContext)
+
+        public SyncServices(CoreDbContext dbContext, IConfiguration configuration)
         {
             _dbContext = dbContext;
+            _configuration = configuration;
         }
         public async Task<VehicleLaneTransactionRequestModel> GetLaneModelDetailsAsync(Guid paymentId, bool isLaneIn)
         {
+            var stationId = _configuration["StationId"];
+
+            //var trans = await _dbContext.PaymentStatuses.Where(x => x.PaymentId == paymentId)
+            //    .Include(p => p.Payment)
+            //    .ThenInclude(x => x.Fee).FirstOrDefaultAsync();
+
+
             var transaction = await _dbContext.PaymentStatuses.Where(x => x.PaymentId == paymentId)
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
@@ -25,6 +37,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                LaneOutTransaction = !isLaneIn ? new VehicleLaneOutTransactionRequestModel()
                {
                    TransactionId = p.TransactionId,
+                   StationId = stationId,
                    LaneId = p.Payment.LaneOutId,
                    EmployeeId = p.Payment.Fee.EmployeeId,
                    LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now,
@@ -46,18 +59,18 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                        PeriodTicketType = null,
                        ChargeAmount = (int?)p.Payment.Fee.Amount,
                        DurationTime = p.Payment.Duration,
-                       //TransactionType =  ,
+                       //TransactionType = ,
                        IsManual = false,
                        IsUseBarcode = false,
                        TicketId = p.Payment.Fee.TicketId,
                        eTicket = null,
-                       //UseTcpParking = null,
+                       //UseTcpParking = bool.Parse(null),
                        IsNonCash = false,
                        PriorityType = null,
                        ForceTicketType = null,
                        PaymentMethod = p.PaymentMethod
                    },
-                   TCPTransactions = null, 
+                   TCPTransactions = null,
                    VETCRequest = null,
                    VETCResponse = null
                } : null,

@@ -1,9 +1,11 @@
 ﻿using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.PaymentStatus;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -33,33 +35,36 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             bool result = false, isLaneIn = msgType == "In";
             try
             {
-                var data = JsonSerializer.Deserialize<PaymentStatusModel>(message);
-                var paymentId = data.PaymentId;
-                var transaction = await _syncService.GetLaneModelDetailsAsync(paymentId, isLaneIn); // should be return LaneTransactionRequestModel
-                if (transaction != null)
+                var queueResponse = JsonConvert.DeserializeObject<PaymentStatusQueueModel>(message);
+                if(queueResponse != null)
                 {
-                    Console.WriteLine($": {transaction}");
-                    //call admin api /LaneTransaction/Stations/{stationId}/v1/lanes/{direction}
-                    var httpContent = new StringContent(JsonSerializer.Serialize(transaction), Encoding.UTF8, "application/json");
-                    var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(
-                        await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}/LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}", 
-                        httpContent));
-
-                    if (response.Succeeded)
+                    var paymentId = queueResponse.Data.PaymentId;
+                    var transaction = await _syncService.GetLaneModelDetailsAsync(paymentId, isLaneIn); // should be return LaneTransactionRequestModel
+                    if (transaction != null)
                     {
-                        result = true;
-                        _logger.LogError("Sync data success");
+                        Console.WriteLine($": {transaction}");
+                        //call admin api /LaneTransaction/Stations/{stationId}/v1/lanes/{direction}
+                        var httpContent = new StringContent(JsonConvert.SerializeObject(transaction), Encoding.UTF8, "application/json");
+                        var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(
+                            await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}/LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
+                            httpContent));
+
+                        if (response.Succeeded)
+                        {
+                            result = true;
+                            _logger.LogError("Sync data success");
+                        }
+                        else
+                        {
+                            _logger.LogError($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
+                        }
                     }
                     else
                     {
-                        _logger.LogError($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
+                        _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found");
                     }
                 }
-                else
-                {
-                    _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found");
-                }
-
+                
                 return result;
             }
             catch (Exception ex)

@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 
-namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models
+namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
 {
     [ExcludeFromCodeCoverage]
     [Table("Fee")]
