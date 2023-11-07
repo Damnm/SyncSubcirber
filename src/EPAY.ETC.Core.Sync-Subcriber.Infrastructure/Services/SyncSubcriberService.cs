@@ -1,14 +1,10 @@
 ﻿using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.PaymentStatus;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
@@ -45,24 +41,26 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
                         if (transaction != null)
                         {
-                            Console.WriteLine($": {transaction}");
                             var httpContent = new StringContent(JsonConvert.SerializeObject(transaction), Encoding.UTF8, "application/json");
-                            var tesst = await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
+                            Console.WriteLine($": {JsonConvert.SerializeObject(transaction)}");
+
+                            var responseMessage = await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
                                 httpContent);
 
-                            var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(
-                                await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
-                                httpContent));
-
-                            if (response.Succeeded)
+                            if (responseMessage.IsSuccessStatusCode)
                             {
-                                result = true;
-                                _logger.LogError("Sync data success");
+                                var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);
+                                if (response.Succeeded)
+                                {
+                                    result = true;
+                                    _logger.LogError("Sync data success");
+                                }
+                                else
+                                {
+                                    _logger.LogError($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
+                                }
                             }
-                            else
-                            {
-                                _logger.LogError($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
-                            }
+                            _logger.LogError($"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}");
                         }
                         else
                         {

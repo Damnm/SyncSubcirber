@@ -27,7 +27,9 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
         [MaxLength(20)]
         public string? VehicleType { get; set; }
         public Guid? CustomVehicleTypeId { get; set; }
+
         [ForeignKey(nameof(CustomVehicleTypeId))]
+        public virtual CustomVehicleTypeModel? CustomVehicleType { get; set; }
 
         public double Amount { get; set; }
 
