@@ -12,23 +12,19 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
     {
         private readonly CoreDbContext _dbContext;
         private readonly IConfiguration _configuration;
-
+        private  string stationId = string.Empty;
 
         public SyncServices(CoreDbContext dbContext, IConfiguration configuration)
         {
             _dbContext = dbContext;
             _configuration = configuration;
+            stationId = _configuration["StationId"];
         }
         public async Task<VehicleLaneTransactionRequestModel> GetLaneModelDetailsAsync(Guid paymentId, bool isLaneIn)
         {
-            var stationId = _configuration["StationId"];
-
-            //var trans = await _dbContext.PaymentStatuses.Where(x => x.PaymentId == paymentId)
-            //    .Include(p => p.Payment)
-            //    .ThenInclude(x => x.Fee).FirstOrDefaultAsync();
-
-
-            var transaction = await _dbContext.PaymentStatuses.Where(x => x.PaymentId == paymentId)
+            var transaction = await _dbContext.PaymentStatuses
+                .Where(x => x.PaymentId == paymentId 
+                    && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
            .Select(p => new VehicleLaneTransactionRequestModel
@@ -38,10 +34,10 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                {
                    TransactionId = p.TransactionId,
                    StationId = stationId,
-                   LaneId = p.Payment.LaneOutId,
-                   EmployeeId = p.Payment.Fee.EmployeeId,
+                   LaneId = p.Payment.LaneOutId ?? "0301",
+                   EmployeeId = p.Payment.Fee.EmployeeId ?? "030002",
                    LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now,
-                   ShiftId = p.Payment.Fee.ShiftId.ToString(),
+                   ShiftId = "030101", // p.Payment.Fee.ShiftId ??
                    IsOCRSuccessful = false,
                    VehicleDetails = new VehicleLaneOutDetailRequestModel
                    {
@@ -64,7 +60,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                        IsUseBarcode = false,
                        TicketId = p.Payment.Fee.TicketId,
                        eTicket = null,
-                       //UseTcpParking = bool.Parse(null),
+                       UseTcpParking = false,
                        IsNonCash = false,
                        PriorityType = null,
                        ForceTicketType = null,

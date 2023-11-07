@@ -46,7 +46,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
         public string? TicketTypeId { get; set; }
         [MaxLength(50)]
         public string? TicketId { get; set; }
-        public Guid? ShiftId { get; set; }
+        public string? ShiftId { get; set; }
         [MaxLength(20)]
         public string? EmployeeId { get; set; }
 
