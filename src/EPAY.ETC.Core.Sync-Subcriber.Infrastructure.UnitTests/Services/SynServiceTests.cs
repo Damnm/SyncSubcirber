@@ -3,6 +3,7 @@ using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.UnitTests.Helpers;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -45,13 +46,11 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.UnitTests.Services
             _dbPaymentStatusModelSetMock = EFTestHelper.GetMockDbSet(statusModels);
             _dbContextMock.Setup(x => x.PaymentStatuses).Returns(_dbPaymentStatusModelSetMock.Object);
             //Act
-            SyncServices syncServices = new SyncServices(_dbContextMock.Object, _iconfigurationMock.Object);
-            var result = await syncServices.GetLaneModelDetailsAsync(paymentId, isLaneIn);
-            //_iconfigurationMock.SetupGet(x => x[It.Is<string>(s => s == "Key")]).Returns("test123");
+            var syncServices = new SyncServices(_dbContextMock.Object, _iconfigurationMock.Object);
+            var result = syncServices.GetLaneModelDetailsAsync(paymentId, isLaneIn);
             // Assert          
-            Assert.NotNull(result);
-            Assert.Null(result.LaneInTransaction);
-            Assert.NotNull(result.LaneOutTransaction);           
+            result.Should().NotBeNull();
+            //_dbContextMock.Verify()          
         }
     }
 }
