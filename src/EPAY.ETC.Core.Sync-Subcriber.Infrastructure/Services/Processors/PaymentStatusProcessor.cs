@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EPAY.ETC.Core.Publisher.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
