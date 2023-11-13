@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Sync;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Mapping
 {
@@ -8,12 +7,12 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Mapping
     {
         public Mappings()
         {
-            CreateMap<FeeModel, TransactionSyncModel>()                        
-                .ReverseMap();
-            CreateMap<PaymentModel, TransactionSyncModel>()
-               .ReverseMap();
-            CreateMap<PaymentStatusModel, TransactionSyncModel>()
-                .ReverseMap();
+            //CreateMap<FeeModel, TransactionSyncModel>()                        
+            //    .ReverseMap();
+            //CreateMap<PaymentModel, TransactionSyncModel>()
+            //   .ReverseMap();
+            //CreateMap<PaymentStatusModel, TransactionSyncModel>()
+            //    .ReverseMap();
         }
     }
 }

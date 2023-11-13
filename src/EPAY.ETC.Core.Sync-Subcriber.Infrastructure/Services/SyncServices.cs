@@ -72,5 +72,10 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
             return transaction;
         }
+
+        public Task<bool> ProcessAsync(string? message = null, string? msgType = "")
+        {
+            throw new NotImplementedException();
+        }
     }
 }

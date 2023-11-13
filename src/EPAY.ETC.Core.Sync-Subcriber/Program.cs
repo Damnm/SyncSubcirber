@@ -60,12 +60,7 @@ builder.ConfigureServices(async (hostContext, services) =>
         configFile = $"nlog.config";
     }
     LogManager.Setup().LoadConfigurationFromFile(configFile);
-    //ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
-    //ISyncService syncService = serviceProvider.GetRequiredService<ISyncService>();
 
-    //var data = await syncService.GetDetailsAsync(Guid.Parse("f6f95add-a5af-48c4-9648-b6ab4d0a397d"));
-    //Console.WriteLine(data);
-    //Create new Subscriber
     ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
     ISyncService syncService = serviceProvider.GetRequiredService<ISyncService>();
     ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
