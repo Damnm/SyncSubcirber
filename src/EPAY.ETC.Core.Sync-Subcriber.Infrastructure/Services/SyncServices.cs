@@ -3,6 +3,7 @@ using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Security.Cryptography.X509Certificates;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
@@ -22,7 +23,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         {
             var transaction = await _dbContext.PaymentStatuses
                 .Where(x => x.PaymentId == paymentId 
-                    && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
+                    && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid
+                    && x.PaymentMethod != ETC.Core.Models.Enums.PaymentMethodEnum.RFID)
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
            .Select(p => new VehicleLaneTransactionRequestModel

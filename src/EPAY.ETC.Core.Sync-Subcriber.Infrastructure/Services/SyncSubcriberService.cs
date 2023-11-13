@@ -14,7 +14,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         private readonly ISyncService _syncService;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        private const string msgTypeLaneOut = "PaymentStatus", msgTypeLaneIn = "In";
+        private const string msgTypeLaneOut = "Fees", msgTypeLaneIn = "In";
         public SyncSubcriberService(ILogger<SyncSubcriberService> logger,
             ISyncService syncServices,
             HttpClient httpClient, IConfiguration configuration)
