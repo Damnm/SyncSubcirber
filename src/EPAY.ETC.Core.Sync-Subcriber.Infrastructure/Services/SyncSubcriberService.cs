@@ -1,6 +1,9 @@
-﻿using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
+﻿using EPAY.ETC.Core.Models.Fees;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -11,16 +14,16 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
     public class SyncSubcriberService : ISyncSubcriberService
     {
         private readonly ILogger<SyncSubcriberService> _logger;
-        private readonly ISyncService _syncService;
+        private readonly ILaneOutProcesscor _laneOutProcesscor;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        private const string msgTypeLaneOut = "PaymentStatus", msgTypeLaneIn = "In";
+        private const string msgTypeLaneOut = "Fees", msgTypeLaneIn = "In";
         public SyncSubcriberService(ILogger<SyncSubcriberService> logger,
-            ISyncService syncServices,
+            ILaneOutProcesscor laneOutProcesscor,
             HttpClient httpClient, IConfiguration configuration)
         {
             _logger = logger;
-            _syncService = syncServices;
+            _laneOutProcesscor = laneOutProcesscor;
             _httpClient = httpClient;
             _configuration = configuration;
         }
@@ -35,9 +38,10 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             {
                 if (!string.IsNullOrEmpty(msgType) && (msgType == msgTypeLaneIn || msgType == msgTypeLaneOut))
                 {
-                    if (Guid.TryParse(message, out Guid paymentId))
+                    var data = JsonConvert.DeserializeObject<FeeModel>(message);
+                    if (data != null && data.Payment != null)
                     {
-                        var transaction = await _syncService.GetLaneModelDetailsAsync(paymentId, msgType == msgTypeLaneIn);
+                        var transaction = await _laneOutProcesscor.ProcessAsync(data.Payment.PaymentId);
 
                         if (transaction != null)
                         {

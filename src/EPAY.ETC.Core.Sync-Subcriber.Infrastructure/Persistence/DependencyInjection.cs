@@ -1,5 +1,7 @@
 ﻿using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +15,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence
 
             //Add Services
             services.AddTransient<ISyncSubcriberService, SyncSubcriberService>();
-            services.AddTransient<ISyncService,SyncServices>();
+            services.AddTransient<ILaneOutProcesscor, LaneOutProcessor>();
             return services;
         }
     }

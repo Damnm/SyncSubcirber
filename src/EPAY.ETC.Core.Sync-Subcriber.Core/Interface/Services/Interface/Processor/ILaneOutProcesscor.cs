@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface
+namespace EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor
 {
-    public interface ISyncProcessor
+    public interface ILaneOutProcesscor
     {
         Task<VehicleLaneTransactionRequestModel> ProcessAsync(Guid paymentId);
     }
