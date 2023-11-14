@@ -6,6 +6,7 @@ using EPAY.ETC.Core.Subscriber.Common.Options;
 using EPAY.ETC.Core.Subscriber.DependencyInjectionExtensions;
 using EPAY.ETC.Core.Subscriber.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.Configs;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
@@ -62,7 +63,7 @@ builder.ConfigureServices(async (hostContext, services) =>
     LogManager.Setup().LoadConfigurationFromFile(configFile);
 
     ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
-    ISyncService syncService = serviceProvider.GetRequiredService<ISyncService>();
+    ILaneOutProcesscor laneOutProcesscor = serviceProvider.GetRequiredService<ILaneOutProcesscor>();
     ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
     ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
