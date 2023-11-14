@@ -38,9 +38,9 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     {
                         RFID = laneInVehicleModel.RFID,
                         FrontPlateColour = laneInVehicleModel.VehicleInfo.PlateColour,
-                        RearPlateColour = laneInVehicleModel.VehicleInfo.PlateColour,
+                        RearPlateColour = laneInVehicleModel.VehicleInfo.RearPlateColour,
                         FrontPlateNumber = laneInVehicleModel.VehicleInfo.PlateNumber,
-                        RearPlateNumber = laneInVehicleModel.VehicleInfo.PlateNumber,
+                        RearPlateNumber = laneInVehicleModel.VehicleInfo.RearPlateNumber,
                         FrontImage = laneInVehicleModel.VehicleInfo.VehiclePhotoUrl,
                         FrontPlateNumberImage = laneInVehicleModel.VehicleInfo.PlateNumberPhotoUrl,
                         RearImage = laneInVehicleModel.VehicleInfo.VehicleRearPhotoUrl,

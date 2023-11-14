@@ -52,18 +52,24 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                         return false;
                     }
 
-                    if (msgType == Constrant.MsgTypeOut) feeModel = JsonConvert.DeserializeObject<FeeModel>(message);
-                    else laneInModel = JsonConvert.DeserializeObject<LaneInVehicleModel>(message);
-
-                    if (msgType == Constrant.MsgTypeOut && feeModel != null && feeModel.Payment != null)
+                    switch (msgType)
                     {
-                        vehicleLaneTransactionRequest = await _laneService.ProcessAsync(feeModel.Payment.PaymentId, null);
+                        case "Fees":
+                            feeModel = JsonConvert.DeserializeObject<FeeModel>(message);
+                            if (feeModel != null && feeModel.Payment != null)
+                            {
+                                vehicleLaneTransactionRequest = await _laneService.ProcessAsync(feeModel.Payment.PaymentId, null);
+                            }
+                            break;
+                        case "In":
+                            laneInModel = JsonConvert.DeserializeObject<LaneInVehicleModel>(message);
+                            if (laneInModel != null)
+                            {
+                                vehicleLaneTransactionRequest = await _laneService.ProcessAsync(null, laneInModel);
+                            }
+                            break;
+                        default: break;
                     }
-                    else if(msgType == Constrant.MsgTypeIn && laneInModel != null)
-                    {
-                        vehicleLaneTransactionRequest = await _laneService.ProcessAsync(null, laneInModel);
-                    }
-
 
                     if (vehicleLaneTransactionRequest != null)
                     {
