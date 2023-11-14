@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using EPAY.ETC.Core.Models.Enums;
+using EPAY.ETC.Core.Models.Fees;
 using EPAY.ETC.Core.Publisher.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
@@ -17,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
 {
-    public class LaneOutProcessor : ILaneOutProcesscor
+    public class LaneOutProcessor : ILaneProcesscor
     {
         private readonly ILogger<LaneOutProcessor> _logger;
         private readonly IMapper _mapper;
@@ -34,12 +36,15 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             stationId = _configuration["StationId"];
         }  
 
-        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(Guid paymentId)
+        public bool IsSupported(string msgType)
         {
-
+            return msgType == Constrant.MsgTypeOut;
+        }
+        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(Guid? paymentId, LaneInVehicleModel laneInVehicleModel)
+        {
             using (var  context = new CoreDbContext()){
                 var transaction = await _dbContext.PaymentStatuses
-                .Where(x => x.PaymentId == paymentId)
+                .Where(x => x.PaymentId == paymentId.Value)
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
                 .Select(p => new VehicleLaneTransactionRequestModel
@@ -69,7 +74,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                             PeriodTicketType = null,
                             ChargeAmount = (int?)p.Payment.Fee.Amount,
                             DurationTime = p.Payment.Duration,
-                            //TransactionType = ,
                             IsManual = false,
                             IsUseBarcode = false,
                             TicketId = p.Payment.Fee.TicketId,

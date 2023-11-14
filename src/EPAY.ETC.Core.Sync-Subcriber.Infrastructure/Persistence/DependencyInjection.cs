@@ -15,7 +15,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence
 
             //Add Services
             services.AddTransient<ISyncSubcriberService, SyncSubcriberService>();
-            services.AddTransient<ILaneOutProcesscor, LaneOutProcessor>();
+            services.AddTransient<ILaneProcesscor, LaneOutProcessor>();
             return services;
         }
     }

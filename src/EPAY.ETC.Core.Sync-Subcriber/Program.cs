@@ -63,7 +63,7 @@ builder.ConfigureServices(async (hostContext, services) =>
     LogManager.Setup().LoadConfigurationFromFile(configFile);
 
     ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
-    ILaneOutProcesscor laneOutProcesscor = serviceProvider.GetRequiredService<ILaneOutProcesscor>();
+    ILaneProcesscor laneOutProcesscor = serviceProvider.GetRequiredService<ILaneProcesscor>();
     ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
     ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
@@ -120,10 +120,10 @@ builder.ConfigureServices(async (hostContext, services) =>
 
         if (opt.Headers != null)
         {
-            if (opt.Headers.TryGetValue(CoreConstant.ENVIRONMENT_LANE, out object? laneIdBytes) && laneIdBytes != null)
+            if (opt.Headers.TryGetValue(CoreConstant.ENVIRONMENT_LANE_OUT, out object? laneIdBytes) && laneIdBytes != null)
             {
                 laneId = Encoding.UTF8.GetString((byte[])laneIdBytes);
-                Environment.SetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE, laneId);
+                Environment.SetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT, laneId);
             }
         }
 

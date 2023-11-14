@@ -1,29 +1,32 @@
 ﻿using EPAY.ETC.Core.Models.Fees;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
+using System.Transactions;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
     public class SyncSubcriberService : ISyncSubcriberService
     {
         private readonly ILogger<SyncSubcriberService> _logger;
-        private readonly ILaneOutProcesscor _laneOutProcesscor;
+        private readonly IEnumerable<ILaneProcesscor> _laneProcesscor;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        private const string msgTypeLaneOut = "Fees", msgTypeLaneIn = "In";
         public SyncSubcriberService(ILogger<SyncSubcriberService> logger,
-            ILaneOutProcesscor laneOutProcesscor,
+            IEnumerable<ILaneProcesscor> laneProcesscor,
             HttpClient httpClient, IConfiguration configuration)
         {
             _logger = logger;
-            _laneOutProcesscor = laneOutProcesscor;
+            _laneProcesscor = laneProcesscor;
             _httpClient = httpClient;
             _configuration = configuration;
         }
@@ -31,48 +34,66 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         public async Task<bool> SyncSubcriber(string message, string msgType)
         {
             _logger.LogInformation($"Executing {nameof(SyncSubcriber)} method...");
-            string direction = msgType == msgTypeLaneIn ? msgTypeLaneIn : "out";
+            string direction = msgType == Constrant.MsgTypeIn ? "in" : "out";
             bool result = false;
-            
+
             try
             {
-                if (!string.IsNullOrEmpty(msgType) && (msgType == msgTypeLaneIn || msgType == msgTypeLaneOut))
+                if (!string.IsNullOrEmpty(msgType) && (msgType == Constrant.MsgTypeOut || msgType == Constrant.MsgTypeIn))
                 {
-                    var data = JsonConvert.DeserializeObject<FeeModel>(message);
-                    if (data != null && data.Payment != null)
+                    FeeModel feeModel = null;
+                    LaneInVehicleModel laneInModel = null;
+                    VehicleLaneTransactionRequestModel vehicleLaneTransactionRequest = null;
+
+                    var _laneService = _laneProcesscor.FirstOrDefault(x => x.IsSupported(msgType ?? string.Empty));
+                    if (_laneService == null)
                     {
-                        var transaction = await _laneOutProcesscor.ProcessAsync(data.Payment.PaymentId);
+                        Console.WriteLine($": Message type {msgType} is not defined");
+                        return false;
+                    }
 
-                        if (transaction != null)
+                    if (msgType == Constrant.MsgTypeOut) feeModel = JsonConvert.DeserializeObject<FeeModel>(message);
+                    else laneInModel = JsonConvert.DeserializeObject<LaneInVehicleModel>(message);
+
+                    if (msgType == Constrant.MsgTypeOut && feeModel != null && feeModel.Payment != null)
+                    {
+                        vehicleLaneTransactionRequest = await _laneService.ProcessAsync(feeModel.Payment.PaymentId, null);
+                    }
+                    else if(msgType == Constrant.MsgTypeIn && laneInModel != null)
+                    {
+                        vehicleLaneTransactionRequest = await _laneService.ProcessAsync(null, laneInModel);
+                    }
+
+
+                    if (vehicleLaneTransactionRequest != null)
+                    {
+                        var httpContent = new StringContent(JsonConvert.SerializeObject(vehicleLaneTransactionRequest), Encoding.UTF8, "application/json");
+                        Console.WriteLine($": {JsonConvert.SerializeObject(vehicleLaneTransactionRequest)}");
+
+                        var responseMessage = await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
+                            httpContent);
+
+                        if (responseMessage.IsSuccessStatusCode)
                         {
-                            var httpContent = new StringContent(JsonConvert.SerializeObject(transaction), Encoding.UTF8, "application/json");
-                            Console.WriteLine($": {JsonConvert.SerializeObject(transaction)}");
-
-                            var responseMessage = await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
-                                httpContent);
-
-                            if (responseMessage.IsSuccessStatusCode)
+                            var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);
+                            if (response.Succeeded)
                             {
-                                var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);
-                                if (response.Succeeded)
-                                {
-                                    result = true;
-                                    _logger.LogError("Sync data success");
-                                }
-                                else
-                                {
-                                    _logger.LogError($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
-                                }
+                                result = true;
+                                _logger.LogError("Sync data success");
                             }
-                            _logger.LogError($"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}");
+                            else
+                            {
+                                _logger.LogError($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
+                            }
                         }
-                        else
-                        {
-                            _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found");
-                        }
+                        _logger.LogError($"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}");
+                    }
+                    else
+                    {
+                        _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found");
                     }
                 }
-                
+
                 return result;
             }
             catch (Exception ex)
