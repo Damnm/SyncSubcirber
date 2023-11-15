@@ -18,7 +18,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
     public class SyncSubcriberService : ISyncSubcriberService
     {
         private readonly ILogger<SyncSubcriberService> _logger;
-        private readonly IEnumerable<ILaneProcesscor> _laneProcesscor;
+        public  readonly IEnumerable<ILaneProcesscor> _laneProcesscor;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         public SyncSubcriberService(ILogger<SyncSubcriberService> logger,
@@ -26,7 +26,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             HttpClient httpClient, IConfiguration configuration)
         {
             _logger = logger;
-            _laneProcesscor = laneProcesscor;
+            _laneProcesscor = laneProcesscor ?? throw new ArgumentNullException(nameof(laneProcesscor));
             _httpClient = httpClient;
             _configuration = configuration;
         }
@@ -45,7 +45,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                     LaneInVehicleModel laneInModel = null;
                     VehicleLaneTransactionRequestModel vehicleLaneTransactionRequest = null;
 
-                    var _laneService = _laneProcesscor.FirstOrDefault(x => x.IsSupported(msgType ?? string.Empty));
+                    var _laneService = _laneProcesscor.FirstOrDefault(x => x.IsSupported(msgType));
                     if (_laneService == null)
                     {
                         Console.WriteLine($": Message type {msgType} is not defined");

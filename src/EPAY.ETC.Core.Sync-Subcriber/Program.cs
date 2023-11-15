@@ -10,13 +10,16 @@ using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.Configs;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Nest;
 using NLog;
 using NLog.Extensions.Logging;
+using System.Security.Authentication;
 using System.Text;
 
 HostBuilder builder = new HostBuilder();
@@ -50,7 +53,11 @@ builder.ConfigureServices(async (hostContext, services) =>
     services.AddDbContext<CoreDbContext>(
         opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
 
-    services.AddHttpClient();
+
+    services.AddHttpClient("yourServerName").ConfigurePrimaryHttpMessageHandler(_ => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
+    });
 
     var serviceProvider = services.BuildServiceProvider();
 
@@ -63,7 +70,8 @@ builder.ConfigureServices(async (hostContext, services) =>
     LogManager.Setup().LoadConfigurationFromFile(configFile);
 
     ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
-    ILaneProcesscor laneOutProcesscor = serviceProvider.GetRequiredService<ILaneProcesscor>();
+    ILaneProcesscor laneProcesscor = serviceProvider.GetRequiredService<ILaneProcesscor>();
+
     ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
     ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
