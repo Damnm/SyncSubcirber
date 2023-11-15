@@ -4,5 +4,6 @@
     {
         public VehicleLaneInTransactionRequestModel? LaneInTransaction { get; set; }
         public VehicleLaneOutTransactionRequestModel? LaneOutTransaction { get; set; }
+        public bool SyncDataExtenalSystem { set; get; } = true;
     }
 }
