@@ -58,7 +58,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                             feeModel = JsonConvert.DeserializeObject<FeeModel>(message);
                             if (feeModel != null && feeModel.Payment != null)
                             {
-                                vehicleLaneTransactionRequest = await _laneService.ProcessAsync(feeModel.Payment.PaymentId, null);
+                                laneInModel = feeModel.LaneInVehicle;
+                                vehicleLaneTransactionRequest = await _laneService.ProcessAsync(feeModel.Payment.PaymentId, laneInModel);
                             }
                             break;
                         case "In":

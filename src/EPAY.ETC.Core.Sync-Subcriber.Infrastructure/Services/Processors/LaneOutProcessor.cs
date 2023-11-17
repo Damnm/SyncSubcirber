@@ -1,21 +1,13 @@
 ﻿using AutoMapper;
-using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Models.Fees;
-using EPAY.ETC.Core.Publisher.Interface;
+using EPAY.ETC.Core.Models.Utils;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
 {
@@ -49,6 +41,11 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                 .ThenInclude(x => x.Fee)
                 .Select(p => new VehicleLaneTransactionRequestModel
                 {
+                    LaneInTransaction = new VehicleLaneInTransactionRequestModel
+                    {
+                        TransactionId = p.TransactionId,
+                        LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime("SE Asia Standard Time")
+                    },
                     LaneOutTransaction = new VehicleLaneOutTransactionRequestModel()
                     {
                         TransactionId = p.TransactionId,
