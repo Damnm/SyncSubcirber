@@ -8,6 +8,7 @@ using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography.X509Certificates;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
 {
@@ -36,7 +37,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         {
             using (var  context = new CoreDbContext()){
                 var transaction = await _dbContext.PaymentStatuses
-                .Where(x => x.PaymentId == paymentId.Value)
+                .Where(x => x.PaymentId == paymentId.Value && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
                 .Select(p => new VehicleLaneTransactionRequestModel
@@ -71,7 +72,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                             PeriodTicketType = null,
                             ChargeAmount = (int?)p.Payment.Fee.Amount,
                             DurationTime = p.Payment.Duration,
-                            IsManual = false,
+                            IsManual = p.Payment.Amount == 0,
                             IsUseBarcode = false,
                             TicketId = p.Payment.Fee.TicketId,
                             eTicket = null,
