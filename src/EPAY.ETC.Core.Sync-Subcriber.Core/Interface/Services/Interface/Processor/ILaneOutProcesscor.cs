@@ -6,6 +6,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Process
     public interface ILaneProcesscor
     {
         bool IsSupported(string msgType);
-        Task<VehicleLaneTransactionRequestModel> ProcessAsync(Guid? paymentId, LaneInVehicleModel? laneInVehicleModel);
+        Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel feeModel, LaneInVehicleModel? laneInVehicleModel);
     }
 }

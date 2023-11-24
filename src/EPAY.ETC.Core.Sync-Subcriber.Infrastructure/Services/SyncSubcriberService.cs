@@ -59,7 +59,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                             if (feeModel != null && feeModel.Payment != null)
                             {
                                 laneInModel = feeModel.LaneInVehicle;
-                                vehicleLaneTransactionRequest = await _laneService.ProcessAsync(feeModel.Payment.PaymentId, laneInModel);
+                                vehicleLaneTransactionRequest = await _laneService.ProcessAsync(feeModel, laneInModel);
                             }
                             break;
                         case "In":

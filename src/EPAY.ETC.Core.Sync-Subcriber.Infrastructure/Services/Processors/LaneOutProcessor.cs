@@ -3,7 +3,6 @@ using EPAY.ETC.Core.Models.Fees;
 using EPAY.ETC.Core.Models.Utils;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
@@ -33,13 +32,13 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         {
             return msgType == Constrant.MsgTypeOut;
         }
-        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(Guid? paymentId, LaneInVehicleModel laneInVehicleModel)
+        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel feeModel, LaneInVehicleModel laneInVehicleModel)
         {
-
+            Guid paymentId = feeModel.Payment.PaymentId;    
             using (var  context = new CoreDbContext()){
 
                 var transaction = await _dbContext.PaymentStatuses
-                .Where(x => x.PaymentId == paymentId.Value && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
+                .Where(x => x.PaymentId == paymentId && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
                 //.ThenInclude(a => a.VehicleCategory)
@@ -68,6 +67,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                             FrontImage = p.Payment.Fee.LaneOutVehiclePhotoUrl,
                             FrontPlateNumberImage = p.Payment.Fee.LaneOutPlateNumberPhotoUrl,
                             ImageExtension = null,
+                            VehicleChargeType = feeModel.LaneOutVehicle.VehicleChargeType
                         },
                         Payment = new VehicleLaneOutPaymentRequestModel
                         {
@@ -80,7 +80,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                             UseTcpParking = false,
                             IsNonCash = false,
                             ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Priority" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
-                            PaymentMethod = p.PaymentMethod
+                            PaymentMethod = p.PaymentMethod,
+                            IsManual = feeModel.LaneOutVehicle.IsManual
                         },
                         TCPTransactions = null,
                         VETCRequest = null,
