@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EPAY.ETC.Core.Models" Version="2023.11.14.1555" />
+    <PackageReference Include="EPAY.ETC.Core.Models" Version="2023.11.23.936" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 

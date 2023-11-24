@@ -17,6 +17,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
         public virtual DbSet<FeeModel> Fees { get; set; }
         public virtual DbSet<PaymentStatusModel> PaymentStatuses { get; set; }
         public virtual DbSet<PaymentModel> Payments { get; set; }
+        //public virtual DbSet<VehicleCategoryModel> VehicleCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -67,8 +68,10 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
                 .HasForeignKey(x => x.FeeId);
             #endregion
 
-    
-    }
+            //#region Vehicle category configuration
+            //modelBuilder.Entity<VehicleCategoryModel>().HasKey(x => x.Id);
+            //#endregion
+        }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);

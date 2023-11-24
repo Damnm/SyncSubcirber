@@ -3,12 +3,12 @@ using EPAY.ETC.Core.Models.Fees;
 using EPAY.ETC.Core.Models.Utils;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Security.Cryptography.X509Certificates;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
 {
@@ -35,11 +35,16 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         }
         public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(Guid? paymentId, LaneInVehicleModel laneInVehicleModel)
         {
+
             using (var  context = new CoreDbContext()){
+
+                //var vehicleType = _dbContext.Fees.FirstOrDefault(x => x.Id);
                 var transaction = await _dbContext.PaymentStatuses
                 .Where(x => x.PaymentId == paymentId.Value && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
+                .ThenInclude(a => a.VehicleCategory)
+                //.ThenInclude(a => a.VehicleCategoi)
                 .Select(p => new VehicleLaneTransactionRequestModel
                 {
                     LaneInTransaction = new VehicleLaneInTransactionRequestModel
@@ -69,17 +74,14 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         Payment = new VehicleLaneOutPaymentRequestModel
                         {
                             TicketType = p.Payment.Fee.TicketTypeId,
-                            PeriodTicketType = null,
+                            PeriodTicketType = p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Contract" ? p.Payment.Fee.VehicleCategory.ExternalId : null,
                             ChargeAmount = (int?)p.Payment.Fee.Amount,
                             DurationTime = p.Payment.Duration,
-                            IsManual = p.Payment.Amount == 0,
-                            IsUseBarcode = false,
                             TicketId = p.Payment.Fee.TicketId,
                             eTicket = null,
                             UseTcpParking = false,
                             IsNonCash = false,
-                            PriorityType = null,
-                            ForceTicketType = null,
+                            ForceTicketType = p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Priority" ? p.Payment.Fee.VehicleCategory.ExternalId : null,
                             PaymentMethod = p.PaymentMethod
                         },
                         TCPTransactions = null,
@@ -87,7 +89,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         VETCResponse = null
                     },
                }).FirstOrDefaultAsync();
-
                 return transaction;
             }
             
