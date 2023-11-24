@@ -42,6 +42,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
         public float? ConfidenceScore { get; set; }
         public double Amount { get; set; }
         public Guid? VehicleCategoryId { get; set; }
+        [ForeignKey(nameof(VehicleCategoryId))]
+        public virtual VehicleCategoryModel? VehicleCategory { get; set; }
         [MaxLength(50)]
         public string? TicketTypeId { get; set; }
         [MaxLength(50)]
