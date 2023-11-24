@@ -1,6 +1,7 @@
 ﻿using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Enums;
 using System.ComponentModel.DataAnnotations;
+using VehicleChargeTypeEnum = EPAY.ETC.Core.Models.Enums.VehicleChargeTypeEnum;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
 {
