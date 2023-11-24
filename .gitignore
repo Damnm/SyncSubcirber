@@ -361,3 +361,4 @@ FodyWeavers.xsd
 
 # Coverage test
 [Cc]overage/
+/src/EPAY.ETC.Core.Sync-Subcriber.Infrastructure/Services/Processors/LaneOutProcessor.cs

@@ -22,7 +22,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         {
             return msgType == Constrant.MsgTypeIn;
         }
-        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(Guid? paymentId, LaneInVehicleModel laneInVehicleModel)
+        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel feeModel, LaneInVehicleModel laneInVehicleModel)
         {
             VehicleLaneTransactionRequestModel transaction = new VehicleLaneTransactionRequestModel
             {
