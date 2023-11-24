@@ -74,8 +74,9 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
                     if (vehicleLaneTransactionRequest != null)
                     {
+                         
                         var httpContent = new StringContent(JsonConvert.SerializeObject(vehicleLaneTransactionRequest), Encoding.UTF8, "application/json");
-                        Console.WriteLine($": {JsonConvert.SerializeObject(vehicleLaneTransactionRequest)}");
+                        Console.WriteLine($"\r\n{JsonConvert.SerializeObject(vehicleLaneTransactionRequest)}\r\n");
 
                         var responseMessage = await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
                             httpContent);
