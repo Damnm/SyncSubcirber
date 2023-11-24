@@ -38,13 +38,11 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
 
             using (var  context = new CoreDbContext()){
 
-                //var vehicleType = _dbContext.Fees.FirstOrDefault(x => x.Id);
                 var transaction = await _dbContext.PaymentStatuses
                 .Where(x => x.PaymentId == paymentId.Value && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
-                .ThenInclude(a => a.VehicleCategory)
-                //.ThenInclude(a => a.VehicleCategoi)
+                //.ThenInclude(a => a.VehicleCategory)
                 .Select(p => new VehicleLaneTransactionRequestModel
                 {
                     LaneInTransaction = new VehicleLaneInTransactionRequestModel
@@ -64,7 +62,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         VehicleDetails = new VehicleLaneOutDetailRequestModel
                         {
                             RFID = p.Payment.RFID,
-                            VehicleTypeId = p.Payment.CustomVehicleType.ExternalId,
+                            VehicleTypeId = p.Payment.CustomVehicleType == null ? null : p.Payment.CustomVehicleType.ExternalId,
                             FrontPlateColour = p.Payment.Fee.PlateColour,
                             FrontPlateNumber = p.Payment.Fee.PlateNumber,
                             FrontImage = p.Payment.Fee.LaneOutVehiclePhotoUrl,
@@ -73,15 +71,15 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         },
                         Payment = new VehicleLaneOutPaymentRequestModel
                         {
-                            TicketType = p.Payment.Fee.TicketTypeId,
-                            PeriodTicketType = p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Contract" ? p.Payment.Fee.VehicleCategory.ExternalId : null,
+                            //TicketType = p.Payment.Fee.TicketTypeId,
+                            PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Contract" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                             ChargeAmount = (int?)p.Payment.Fee.Amount,
                             DurationTime = p.Payment.Duration,
                             TicketId = p.Payment.Fee.TicketId,
                             eTicket = null,
                             UseTcpParking = false,
                             IsNonCash = false,
-                            ForceTicketType = p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Priority" ? p.Payment.Fee.VehicleCategory.ExternalId : null,
+                            ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Priority" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                             PaymentMethod = p.PaymentMethod
                         },
                         TCPTransactions = null,
