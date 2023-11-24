@@ -55,8 +55,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         public string? FrontPlateColour { set; get; }
         [MaxLength(15)]
         public string? FrontPlateNumber { set; get; }
-        public string? FrontImage { set; get; }
-        public string? FrontPlateNumberImage { set; get; }
+        public string? FrontImageURL { set; get; }
+        public string? FrontPlateNumberImageURL { set; get; }
         [MaxLength(5)]
         public string? ImageExtension { set; get; }
         public VehicleChargeTypeEnum VehicleChargeType { set; get; }
