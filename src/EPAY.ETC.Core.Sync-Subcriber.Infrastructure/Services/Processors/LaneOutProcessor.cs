@@ -64,8 +64,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                             VehicleTypeId = p.Payment.CustomVehicleType == null ? null : p.Payment.CustomVehicleType.ExternalId,
                             FrontPlateColour = p.Payment.Fee.PlateColour,
                             FrontPlateNumber = p.Payment.Fee.PlateNumber,
-                            FrontImageURL = p.Payment.Fee.LaneOutVehiclePhotoUrl,
-                            FrontPlateNumberImageURL = p.Payment.Fee.LaneOutPlateNumberPhotoUrl,
+                            FrontImage = p.Payment.Fee.LaneOutVehiclePhotoUrl,
+                            FrontPlateNumberImage = p.Payment.Fee.LaneOutPlateNumberPhotoUrl,
                             ImageExtension = null,
                             VehicleChargeType = feeModel.LaneOutVehicle.VehicleChargeType
                         },
