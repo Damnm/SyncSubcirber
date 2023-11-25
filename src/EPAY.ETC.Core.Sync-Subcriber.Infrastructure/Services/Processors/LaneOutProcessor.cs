@@ -56,7 +56,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         LaneId = p.Payment.LaneOutId ?? "0301",
                         EmployeeId = p.Payment.Fee.EmployeeId ?? "030002",
                         LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now,
-                        ShiftId = "030101", // p.Payment.Fee.ShiftId ??
+                        ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour <12 ? "030101":"030102", // p.Payment.Fee.ShiftId ??
                         IsOCRSuccessful = false,
                         VehicleDetails = new VehicleLaneOutDetailRequestModel
                         {
