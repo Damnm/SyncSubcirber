@@ -53,7 +53,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     {
                         TransactionId = p.TransactionId,
                         StationId = stationId,
-                        LaneId = p.Payment.LaneOutId ?? "0301",
+                        LaneId = $"{stationId}{int.Parse(p.Payment.LaneOutId ?? "01").ToString("D2")}",
                         EmployeeId = p.Payment.Fee.EmployeeId ?? "030002",
                         LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now,
                         ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour <12 ? "030101":"030102", // p.Payment.Fee.ShiftId ??

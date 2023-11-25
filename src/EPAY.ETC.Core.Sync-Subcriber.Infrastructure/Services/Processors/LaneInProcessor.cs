@@ -34,20 +34,22 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     ShiftId = "030101", // feeModel.ShiftId ??
                     LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime("SE Asia Standard Time"),
                     TCPCheckPoint = string.Empty,
-                    VehicleDetails = new VehicleLaneInDetailRequestModel()
-                    {
-                        RFID = laneInVehicleModel.RFID,
-                        FrontPlateColour = laneInVehicleModel.VehicleInfo.PlateColour,
-                        RearPlateColour = laneInVehicleModel.VehicleInfo.RearPlateColour,
-                        FrontPlateNumber = laneInVehicleModel.VehicleInfo.PlateNumber,
-                        RearPlateNumber = laneInVehicleModel.VehicleInfo.RearPlateNumber,
-                        FrontImage = laneInVehicleModel.VehicleInfo.VehiclePhotoUrl,
-                        FrontPlateNumberImage = laneInVehicleModel.VehicleInfo.PlateNumberPhotoUrl,
-                        RearImage = laneInVehicleModel.VehicleInfo.VehicleRearPhotoUrl,
-                        RearPlateNumberImage = laneInVehicleModel.VehicleInfo.PlateNumberRearPhotoUrl,
-                        ImageExtension = "JPG",
-                        VehicleTypeId = laneInVehicleModel.VehicleInfo.VehicleType,
-                    },
+                    VehicleDetails = laneInVehicleModel.VehicleInfo == null 
+                        ? new VehicleLaneInDetailRequestModel { RFID = laneInVehicleModel.RFID } 
+                        : new VehicleLaneInDetailRequestModel()
+                        {
+                            RFID = laneInVehicleModel.RFID,
+                            FrontPlateColour = laneInVehicleModel.VehicleInfo.PlateColour,
+                            RearPlateColour = laneInVehicleModel.VehicleInfo.RearPlateColour,
+                            FrontPlateNumber = laneInVehicleModel.VehicleInfo.PlateNumber,
+                            RearPlateNumber = laneInVehicleModel.VehicleInfo.RearPlateNumber,
+                            FrontImage = laneInVehicleModel.VehicleInfo.VehiclePhotoUrl,
+                            FrontPlateNumberImage = laneInVehicleModel.VehicleInfo.PlateNumberPhotoUrl,
+                            RearImage = laneInVehicleModel.VehicleInfo.VehicleRearPhotoUrl,
+                            RearPlateNumberImage = laneInVehicleModel.VehicleInfo.PlateNumberRearPhotoUrl,
+                            ImageExtension = "JPG",
+                            VehicleTypeId = laneInVehicleModel.VehicleInfo.VehicleType,
+                        },
                 },
                 LaneOutTransaction = null
             };
