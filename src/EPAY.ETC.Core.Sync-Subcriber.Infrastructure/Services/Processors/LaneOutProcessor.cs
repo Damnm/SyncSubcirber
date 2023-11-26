@@ -41,7 +41,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                 .Where(x => x.PaymentId == paymentId && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
                 .Include(p => p.Payment)
                 .ThenInclude(x => x.Fee)
-                //.ThenInclude(a => a.VehicleCategory)
                 .Select(p => new VehicleLaneTransactionRequestModel
                 {
                     LaneInTransaction = new VehicleLaneInTransactionRequestModel
@@ -56,7 +55,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         LaneId = $"{stationId}{int.Parse(p.Payment.LaneOutId ?? "01").ToString("D2")}",
                         EmployeeId = p.Payment.Fee.EmployeeId ?? "030002",
                         LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now,
-                        ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour <12 ? "030101":"030102", // p.Payment.Fee.ShiftId ??
+                        ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour <12 ? "030101":"030102",
                         IsOCRSuccessful = false,
                         VehicleDetails = new VehicleLaneOutDetailRequestModel
                         {
