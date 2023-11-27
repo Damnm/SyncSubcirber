@@ -11,11 +11,14 @@ latest=$image:latest
   
 #build image  
 docker build --no-cache -t $tag -f Dockerfile . 
-  
+
 #push to dockerhub  
 docker login  
 #sudo docker login -u username -p password  
+docker image tag $tag $latest
+
 docker push $tag
+docker push $latest
   
 #remove dangling images  
 docker system prune -f  
