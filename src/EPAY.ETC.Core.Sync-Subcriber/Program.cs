@@ -96,6 +96,22 @@ builder.ConfigureServices(async (hostContext, services) =>
         /***** End exchange options *******/
 
         /***** Queue options *******/
+        string laneId = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT) ?? "1";
+        var queueOptions = subscriberOptions.QueueOptions.Select(x =>
+        {
+            if (laneId != "1")
+            {
+                string newQueueName = $"{x.QueueName}_{laneId}";
+                x.DeadLetterRoutingKey = x.DeadLetterRoutingKey.Replace(x.QueueName, newQueueName);
+                x.QueueName = newQueueName;
+
+                if (x.BindArguments.ContainsKey(CoreConstant.RABBIT_HEADER_PROP_LANEID))
+                    x.BindArguments[CoreConstant.RABBIT_HEADER_PROP_LANEID] = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT) ?? x.BindArguments[CoreConstant.RABBIT_HEADER_PROP_LANEID];
+            }
+
+            return x;
+        });
+
         foreach (var queueOption in subscriberOptions?.QueueOptions ?? new List<QueueOption>())
         {
             option.QueueOptions.Add(new QueueOption()

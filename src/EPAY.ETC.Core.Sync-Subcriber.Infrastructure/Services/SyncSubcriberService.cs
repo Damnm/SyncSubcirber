@@ -1,17 +1,15 @@
-﻿using EPAY.ETC.Core.Models.Fees;
+﻿using EPAY.ETC.Core.Models.Constants;
+using EPAY.ETC.Core.Models.Fees;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
-using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
-using System.Transactions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
@@ -21,6 +19,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         public  readonly IEnumerable<ILaneProcesscor> _laneProcesscor;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
+        private string AdminApiUrl;
         public SyncSubcriberService(ILogger<SyncSubcriberService> logger,
             IEnumerable<ILaneProcesscor> laneProcesscor,
             HttpClient httpClient, IConfiguration configuration)
@@ -29,6 +28,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             _laneProcesscor = laneProcesscor ?? throw new ArgumentNullException(nameof(laneProcesscor));
             _httpClient = httpClient;
             _configuration = configuration;
+            AdminApiUrl = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT) ?? _configuration["AdminApiUrl"];
         }
 
         public async Task<bool> SyncSubcriber(string message, string msgType)
@@ -78,7 +78,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                         var httpContent = new StringContent(JsonConvert.SerializeObject(vehicleLaneTransactionRequest), Encoding.UTF8, "application/json");
                         Console.WriteLine($"\r\n{JsonConvert.SerializeObject(vehicleLaneTransactionRequest)}\r\n");
 
-                        var responseMessage = await _httpClient.PostAsync($"{_configuration["AdminApiUrl"]}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
+                        var responseMessage = await _httpClient.PostAsync($"{AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
                             httpContent);
 
                         if (responseMessage.IsSuccessStatusCode)
