@@ -20,8 +20,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
         public string? ExternalId { get; set; }
         [MaxLength(20)]
         public string? VehicleCategoryType { get; set; }
-
-        //public virtual ICollection<FeeVehicleCategoryModel>? FeeVehicleCategories { get; set; }
     }
 }
 
