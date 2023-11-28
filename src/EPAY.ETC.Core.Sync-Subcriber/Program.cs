@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Nest;
+using Newtonsoft.Json;
 using NLog;
 using NLog.Extensions.Logging;
 using System.Security.Authentication;
@@ -95,7 +96,26 @@ builder.ConfigureServices(async (hostContext, services) =>
         option.ExchangeOption.AlternateExchange = subscriberOptions?.ExchangeOption?.AlternateExchange ?? string.Empty;
         /***** End exchange options *******/
 
+
+        Console.WriteLine("start");
+
         /***** Queue options *******/
+        string laneId = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT) ?? "1";
+        var queueOptions = subscriberOptions.QueueOptions.Select(x =>
+        {
+            if (laneId != "1")
+            {
+                string newQueueName = $"{x.QueueName}_{laneId}";
+                x.DeadLetterRoutingKey = x.DeadLetterRoutingKey.Replace(x.QueueName, newQueueName);
+                x.QueueName = newQueueName;
+
+                if (x.BindArguments.ContainsKey(CoreConstant.RABBIT_HEADER_PROP_LANEID))
+                    x.BindArguments[CoreConstant.RABBIT_HEADER_PROP_LANEID] = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT) ?? x.BindArguments[CoreConstant.RABBIT_HEADER_PROP_LANEID];
+            }
+
+            return x;
+        });
+
         foreach (var queueOption in subscriberOptions?.QueueOptions ?? new List<QueueOption>())
         {
             option.QueueOptions.Add(new QueueOption()
@@ -109,6 +129,7 @@ builder.ConfigureServices(async (hostContext, services) =>
             });
         }
         /***** End queue options *******/
+        Console.WriteLine("start1");
     });
 
     _logger.LogInformation($"Start program Receive message in env {hostContext.HostingEnvironment} from queue {string.Join(", ", subscriberOptions?.QueueOptions.Select(x => x.QueueName) ?? new List<string>())} and exchange {subscriberOptions?.ExchangeOption?.ExchangeName}");
@@ -153,5 +174,14 @@ builder.ConfigureServices(async (hostContext, services) =>
 
 
 var host = builder.Build();
+Console.WriteLine("start3");
 
+try
+{
 host.Run();
+
+}catch  (Exception ex)
+{
+    Console.WriteLine(ex.ToString());
+}
+

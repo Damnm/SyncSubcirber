@@ -15,11 +15,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTests", "UnitTests", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTests", "IntegrationTests", "{5FF33A56-4E0B-4AC9-8085-638883276590}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sync-Subcriber.Infrastructure.UnitTests", "UnitTests\TestProject1\Sync-Subcriber.Infrastructure.UnitTests.csproj", "{82AFF74F-F4E2-4F67-8A2E-073C290960E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sync-Subcriber.Infrastructure.UnitTests", "UnitTests\TestProject1\Sync-Subcriber.Infrastructure.UnitTests.csproj", "{82AFF74F-F4E2-4F67-8A2E-073C290960E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sync-Subcriber.Core.UnitTests", "UnitTests\EPAY.ETC.Core.Sync-Subcriber.Core.UnitTests\Sync-Subcriber.Core.UnitTests.csproj", "{9040803A-D827-41B4-929F-D3B2ADAF6BC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sync-Subcriber.Core.UnitTests", "UnitTests\EPAY.ETC.Core.Sync-Subcriber.Core.UnitTests\Sync-Subcriber.Core.UnitTests.csproj", "{9040803A-D827-41B4-929F-D3B2ADAF6BC9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sync-Subcriber.Infrastructure.IntegrationTests", "IntegrationTests\TestProject1\Sync-Subcriber.Infrastructure.IntegrationTests.csproj", "{FD695FA8-11BA-46B3-A01B-5C6E392CF28A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sync-Subcriber.Infrastructure.IntegrationTests", "IntegrationTests\TestProject1\Sync-Subcriber.Infrastructure.IntegrationTests.csproj", "{FD695FA8-11BA-46B3-A01B-5C6E392CF28A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
