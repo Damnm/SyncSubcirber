@@ -96,9 +96,6 @@ builder.ConfigureServices(async (hostContext, services) =>
         option.ExchangeOption.AlternateExchange = subscriberOptions?.ExchangeOption?.AlternateExchange ?? string.Empty;
         /***** End exchange options *******/
 
-
-        Console.WriteLine("start");
-
         /***** Queue options *******/
         string laneId = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT) ?? "1";
         var queueOptions = subscriberOptions.QueueOptions.Select(x =>
@@ -129,7 +126,6 @@ builder.ConfigureServices(async (hostContext, services) =>
             });
         }
         /***** End queue options *******/
-        Console.WriteLine("start1");
     });
 
     _logger.LogInformation($"Start program Receive message in env {hostContext.HostingEnvironment} from queue {string.Join(", ", subscriberOptions?.QueueOptions.Select(x => x.QueueName) ?? new List<string>())} and exchange {subscriberOptions?.ExchangeOption?.ExchangeName}");
@@ -157,13 +153,13 @@ builder.ConfigureServices(async (hostContext, services) =>
             }
         }
 
-        Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} {opt.Message}");
+        Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} {opt.Message}\r\n");
 
         var result = await syncSubcriberService.SyncSubcriber(opt.Message, msgType);
 
         await Task.Yield();
 
-        Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} Processed done");
+        Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} Processed done\r\n");
 
         if (result)
             subscriber.Acknowledge(opt.DeliveryTag);
@@ -174,7 +170,6 @@ builder.ConfigureServices(async (hostContext, services) =>
 
 
 var host = builder.Build();
-Console.WriteLine("start3");
 
 try
 {

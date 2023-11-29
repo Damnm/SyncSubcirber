@@ -32,7 +32,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         {
             return msgType == Constrant.MsgTypeOut;
         }
-        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel feeModel, LaneInVehicleModel laneInVehicleModel)
+        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel feeModel, LaneInVehicleModel? laneInVehicleModel)
         {
             Guid paymentId = feeModel.Payment.PaymentId;    
             using (var  context = new CoreDbContext()){
@@ -43,16 +43,17 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                 .ThenInclude(x => x.Fee)
                 .Select(p => new VehicleLaneTransactionRequestModel
                 {
-                    LaneInTransaction = new VehicleLaneInTransactionRequestModel
-                    {
-                        TransactionId = p.TransactionId,
-                        LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime("SE Asia Standard Time")
-                    },
+                    LaneInTransaction = laneInVehicleModel == null ? null 
+                        : new VehicleLaneInTransactionRequestModel
+                        {
+                            TransactionId = p.TransactionId,
+                            LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime("SE Asia Standard Time")
+                        },
                     LaneOutTransaction = new VehicleLaneOutTransactionRequestModel()
                     {
                         TransactionId = p.TransactionId,
                         StationId = stationId,
-                        LaneId = $"{stationId}{int.Parse(p.Payment.LaneOutId ?? "01").ToString("D2")}",
+                        LaneId = $"{stationId}{int.Parse(p.Payment.LaneOutId ?? "01"):D2}",
                         EmployeeId = p.Payment.Fee.EmployeeId ?? "030002",
                         LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now,
                         ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour <12 ? "030101":"030102",
@@ -71,14 +72,16 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         Payment = new VehicleLaneOutPaymentRequestModel
                         {
                             //TicketType = p.Payment.Fee.TicketTypeId,
-                            PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Contract" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
+                            PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null 
+                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Contract" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                             ChargeAmount = (int?)p.Payment.Fee.Amount,
                             DurationTime = p.Payment.Duration,
                             TicketId = p.Payment.Fee.TicketId,
                             eTicket = null,
                             UseTcpParking = false,
                             IsNonCash = false,
-                            ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Priority" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
+                            ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null 
+                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Priority" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                             PaymentMethod = p.PaymentMethod,
                             IsManual = feeModel.LaneOutVehicle.IsManual
                         },
