@@ -41,8 +41,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             {
                 if (!string.IsNullOrEmpty(msgType) && (msgType == Constrant.MsgTypeOut || msgType == Constrant.MsgTypeIn))
                 {
-                    FeeModel feeModel = null;
-                    LaneInVehicleModel laneInModel = null;
+                    FeeModel? feeModel = null;
+                    LaneInVehicleModel? laneInModel = null;
                     VehicleLaneTransactionRequestModel vehicleLaneTransactionRequest = null;
 
                     var _laneService = _laneProcesscor.FirstOrDefault(x => x.IsSupported(msgType));
@@ -76,7 +76,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                     {
                          
                         var httpContent = new StringContent(JsonConvert.SerializeObject(vehicleLaneTransactionRequest), Encoding.UTF8, "application/json");
-                        Console.WriteLine($"\r\n{JsonConvert.SerializeObject(vehicleLaneTransactionRequest)}\r\n");
+                        Console.WriteLine($"{JsonConvert.SerializeObject(vehicleLaneTransactionRequest)}\r\n");
 
                         var responseMessage = await _httpClient.PostAsync($"{AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
                             httpContent);
@@ -106,6 +106,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}\r\n");
                 _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}");
                 return result;
             }
