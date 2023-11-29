@@ -80,6 +80,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
                         var responseMessage = await _httpClient.PostAsync($"{AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
                             httpContent);
+                        Console.WriteLine($"Url : {AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}");
 
                         if (responseMessage.IsSuccessStatusCode)
                         {
