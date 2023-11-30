@@ -34,9 +34,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         }
         public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel feeModel, LaneInVehicleModel? laneInVehicleModel)
         {
-            Guid paymentId = feeModel.Payment.PaymentId;    
-            using (var  context = new CoreDbContext()){
-
+            Guid paymentId = feeModel.Payment.PaymentId; 
+            
                 var transaction = await _dbContext.PaymentStatuses
                 .Where(x => x.PaymentId == paymentId && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
                 .Include(p => p.Payment)
@@ -55,7 +54,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         StationId = stationId,
                         LaneId = $"{stationId}{int.Parse(p.Payment.LaneOutId ?? "01"):D2}",
                         EmployeeId = p.Payment.Fee.EmployeeId ?? "030002",
-                        LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now,
+                        LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now.ConvertToTimeZone(DateTimeKind.Local, "SE Asia Standard Time"),
                         ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour <12 ? "030101":"030102",
                         IsOCRSuccessful = false,
                         VehicleDetails = new VehicleLaneOutDetailRequestModel
@@ -95,4 +94,3 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             
         }
     }
-}
