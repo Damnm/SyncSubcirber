@@ -74,7 +74,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                             PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null 
                                 : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Contract" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                             ChargeAmount = (int?)p.Payment.Fee.Amount,
-                            DurationTime = p.Payment.Duration,
+                            DurationTime = (int)Math.Ceiling((decimal)p.Payment.Duration / 60),
                             TicketId = p.Payment.Fee.TicketId,
                             eTicket = null,
                             UseTcpParking = false,
