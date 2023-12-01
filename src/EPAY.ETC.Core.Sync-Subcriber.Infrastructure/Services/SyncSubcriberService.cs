@@ -9,6 +9,7 @@ using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
@@ -74,13 +75,16 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
                     if (vehicleLaneTransactionRequest != null)
                     {
-                         
-                        var httpContent = new StringContent(JsonConvert.SerializeObject(vehicleLaneTransactionRequest), Encoding.UTF8, "application/json");
-                        Console.WriteLine($"{JsonConvert.SerializeObject(vehicleLaneTransactionRequest)}\r\n");
+                        //var httpContent = new StringContent(JsonConvert.SerializeObject(vehicleLaneTransactionRequest), Encoding.UTF8, "application/json");
+                        //Console.WriteLine($"{JsonConvert.SerializeObject(vehicleLaneTransactionRequest)}\r\n");
 
-                        var responseMessage = await _httpClient.PostAsync($"{AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
-                            httpContent);
-                        Console.WriteLine($"Url : {AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}");
+                        //var responseMessage = await _httpClient.PostAsync($"{AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
+                        //    httpContent);
+
+                        //Console.WriteLine($"Url : {AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}");
+
+                        string url = $"{AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}";
+                        var responseMessage = await PostData(url, JsonConvert.SerializeObject(vehicleLaneTransactionRequest));
 
                         if (responseMessage.IsSuccessStatusCode)
                         {
@@ -110,6 +114,24 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                 Console.WriteLine($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}\r\n");
                 _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}");
                 return result;
+            }
+        }
+
+        private async Task<HttpResponseMessage> PostData(string url, string data)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Headers.Accept.Clear();
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                request.Content = new StringContent(data, Encoding.UTF8, "application/json");
+
+                return await _httpClient.SendAsync(request, CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}\r\n");
+                throw;
             }
         }
     }
