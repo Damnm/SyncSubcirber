@@ -61,7 +61,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         VehicleDetails = new VehicleLaneOutDetailRequestModel
                         {
                             RFID = p.Payment.RFID,
-                            VehicleTypeId = p.Payment.CustomVehicleType == null ? null : p.Payment.CustomVehicleType.ExternalId,
+                            VehicleTypeId = p.Payment.CustomVehicleType == null ? null : p.Payment.CustomVehicleType.ExternalId.Substring(p.Payment.CustomVehicleType.ExternalId.Length - 2),
                             FrontPlateColour = p.Payment.Fee.PlateColour,
                             FrontPlateNumber = p.Payment.Fee.PlateNumber,
                             FrontImage = p.Payment.Fee.LaneOutVehiclePhotoUrl,
