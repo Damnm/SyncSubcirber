@@ -28,7 +28,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             _laneProcesscor = laneProcesscor ?? throw new ArgumentNullException(nameof(laneProcesscor));
             _httpClient = httpClient;
             _configuration = configuration;
-            AdminApiUrl = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT) ?? _configuration["AdminApiUrl"];
+            AdminApiUrl = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_ADMIN_API_BASE) ?? _configuration["AdminApiUrl"];
         }
 
         public async Task<bool> SyncSubcriber(string message, string msgType)
@@ -80,6 +80,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
                         var responseMessage = await _httpClient.PostAsync($"{AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
                             httpContent);
+                        Console.WriteLine($"Url : {AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}");
 
                         if (responseMessage.IsSuccessStatusCode)
                         {
