@@ -33,8 +33,9 @@
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="Epay.ETC.Core.Subscriber" Version="2023.11.9.851" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.13" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0-rc.2.23479.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.25" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
     <PackageReference Include="Moq" Version="4.20.69" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog.Targets.ElasticSearch" Version="7.7.0" />
