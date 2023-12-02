@@ -54,12 +54,6 @@ builder.ConfigureServices(async (hostContext, services) =>
     services.AddDbContext<CoreDbContext>(
         opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
 
-
-    services.AddHttpClient("yourServerName").ConfigurePrimaryHttpMessageHandler(_ => new HttpClientHandler
-    {
-        ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
-    });
-
     var serviceProvider = services.BuildServiceProvider();
 
     // Load nlog config
