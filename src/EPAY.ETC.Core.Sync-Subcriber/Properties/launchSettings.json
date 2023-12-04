@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "EPAY.ETC.Core.Sync-Subcriber": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "LANEOUTID_ENVIRONMENT": "1"
+      }
+    }
+  }
+}

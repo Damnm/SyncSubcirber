@@ -3,6 +3,7 @@ using EPAY.ETC.Core.Models.Utils;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
 using Microsoft.Extensions.Configuration;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
@@ -48,7 +49,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                             RearImage = laneInVehicleModel.VehicleInfo.VehicleRearPhotoUrl,
                             RearPlateNumberImage = laneInVehicleModel.VehicleInfo.PlateNumberRearPhotoUrl,
                             ImageExtension = "JPG",
-                            VehicleTypeId = laneInVehicleModel.VehicleInfo.VehicleType,
+                            VehicleTypeId = laneInVehicleModel.VehicleInfo.VehicleType?.ConvertVehicleType(),
                         },
                 },
                 LaneOutTransaction = null

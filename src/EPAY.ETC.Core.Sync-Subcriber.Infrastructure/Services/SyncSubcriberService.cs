@@ -34,7 +34,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
         public async Task<bool> SyncSubcriber(string message, string msgType)
         {
-            _logger.LogInformation($"Executing {nameof(SyncSubcriber)} method...");
+            _logger.LogInformation($"Executing {nameof(SyncSubcriber)} method...Message: {message}. MessageType: {msgType}");
             string direction = msgType == Constrant.MsgTypeIn ? "in" : "out";
             bool result = false;
 
