@@ -84,20 +84,24 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                             if (response.Succeeded)
                             {
                                 result = true;
+                                Console.WriteLine("Sync data success");
                                 _logger.LogInformation("Sync data success");
                             }
                             else
                             {
+                                Console.WriteLine($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
                                 _logger.LogError($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
                             }
                         }
                         else
                         {
+                            Console.WriteLine($"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}");
                             _logger.LogError($"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}");
                         }
                     }
                     else
                     {
+                        Console.WriteLine($"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found");
                         _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found");
                     }
                 }
