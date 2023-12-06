@@ -75,14 +75,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
                     if (vehicleLaneTransactionRequest != null)
                     {
-                        //var httpContent = new StringContent(JsonConvert.SerializeObject(vehicleLaneTransactionRequest), Encoding.UTF8, "application/json");
-                        //Console.WriteLine($"{JsonConvert.SerializeObject(vehicleLaneTransactionRequest)}\r\n");
-
-                        //var responseMessage = await _httpClient.PostAsync($"{AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}",
-                        //    httpContent);
-
-                        //Console.WriteLine($"Url : {AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}");
-
                         string url = $"{AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}";
                         var responseMessage = await PostData(url, JsonConvert.SerializeObject(vehicleLaneTransactionRequest));
 
@@ -92,14 +84,17 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                             if (response.Succeeded)
                             {
                                 result = true;
-                                _logger.LogError("Sync data success");
+                                _logger.LogInformation("Sync data success");
                             }
                             else
                             {
                                 _logger.LogError($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
                             }
                         }
-                        _logger.LogError($"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}");
+                        else
+                        {
+                            _logger.LogError($"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}");
+                        }
                     }
                     else
                     {
@@ -126,11 +121,13 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 request.Content = new StringContent(data, Encoding.UTF8, "application/json");
 
+                Console.WriteLine($"Admin API Request: {request.RequestUri}\r\n{data}\r\n");
+
                 return await _httpClient.SendAsync(request, CancellationToken.None);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}\r\n");
+                Console.WriteLine($"Failed to run {nameof(PostData)} method. Error: {ex.Message}\r\n");
                 throw;
             }
         }

@@ -147,13 +147,14 @@ builder.ConfigureServices(async (hostContext, services) =>
             }
         }
 
-        Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} {opt.Message}\r\n");
+        Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} - Start process\r\n");
+        Console.WriteLine($"{opt.Message}\r\n");
 
         var result = await syncSubcriberService.SyncSubcriber(opt.Message, msgType);
 
         await Task.Yield();
 
-        Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} Processed done\r\n");
+        Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} - Processed done\r\n");
 
         if (result)
             subscriber.Acknowledge(opt.DeliveryTag);
