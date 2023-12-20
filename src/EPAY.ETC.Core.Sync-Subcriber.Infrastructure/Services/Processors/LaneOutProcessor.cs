@@ -60,8 +60,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         VehicleDetails = new VehicleLaneOutDetailRequestModel
                         {
                             RFID = p.Payment.RFID,
-                            //VehicleTypeId = p.Payment.CustomVehicleType == null ? null : p.Payment.CustomVehicleType.ExternalId.Substring(p.Payment.CustomVehicleType.ExternalId.Length - 2),
-                            VehicleTypeId = p.Payment.CustomVehicleType == null ? null : p.Payment.CustomVehicleType.ExternalId,
+                            VehicleTypeId = p.Payment.CustomVehicleType == null ? null : p.Payment.CustomVehicleType.ExternalId.Substring(p.Payment.CustomVehicleType.ExternalId.Length - 2),
                             FrontPlateColour = p.Payment.Fee.PlateColour,
                             FrontPlateNumber = p.Payment.Fee.PlateNumber,
                             FrontImage = p.Payment.Fee.LaneOutVehiclePhotoUrl,
@@ -78,16 +77,17 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                             DurationTime = (int)Math.Ceiling((decimal)p.Payment.Duration / 60),
                             TicketId = p.Payment.Fee.TicketId,
                             eTicket = null,
-                            UseTcpParking = false,
+                            UseTcpParking = feeModel.Parking != null,
                             IsNonCash = false,
                             ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null 
                                 : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Priority" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                             PaymentMethod = p.PaymentMethod,
-                            IsManual = feeModel.LaneOutVehicle.IsManual
+                            IsManual = feeModel.LaneOutVehicle.IsManual,
                         },
                         TCPTransactions = null,
                         VETCRequest = null,
-                        VETCResponse = null
+                        VETCResponse = null,
+                        ParkingCode = feeModel.Parking == null ? null : feeModel.Parking.LocationId
                     },
                }).FirstOrDefaultAsync();
                 return transaction;

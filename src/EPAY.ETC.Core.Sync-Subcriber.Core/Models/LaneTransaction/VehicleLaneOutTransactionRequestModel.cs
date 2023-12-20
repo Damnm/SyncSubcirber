@@ -12,6 +12,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         public DateTime LaneOutDate { set; get; }
         public string ShiftId { set; get; }
         public bool IsOCRSuccessful { set; get; }
+        public string? ParkingCode { set; get; }
         public VehicleLaneOutDetailRequestModel VehicleDetails { set; get; }
         public VehicleLaneOutPaymentRequestModel Payment { set; get; }
         public List<TCPTransactionRequestModel>? TCPTransactions { get; set; }
