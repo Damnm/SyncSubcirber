@@ -31,9 +31,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
         public Guid? CustomVehicleTypeId { get; set; }
         public int? Seat { get; set; }
         public int? Weight { get; set; }
-        [MaxLength(255)]
         public string? LaneInPlateNumberPhotoUrl { get; set; }
-        [MaxLength(255)]
         public string? LaneInVehiclePhotoUrl { get; set; }
         [MaxLength(255)]
         public string? LaneOutPlateNumberPhotoUrl { get; set; }

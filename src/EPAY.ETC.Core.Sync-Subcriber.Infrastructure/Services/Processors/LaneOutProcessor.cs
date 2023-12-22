@@ -3,6 +3,7 @@ using EPAY.ETC.Core.Models.Fees;
 using EPAY.ETC.Core.Models.Utils;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Enums;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
@@ -34,13 +35,36 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         }
         public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel feeModel, LaneInVehicleModel? laneInVehicleModel)
         {
-            Guid paymentId = feeModel.Payment.PaymentId; 
-            
-                var transaction = await _dbContext.PaymentStatuses
-                .Where(x => x.PaymentId == paymentId && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
-                .Include(p => p.Payment)
-                .ThenInclude(x => x.Fee)
-                .Select(p => new VehicleLaneTransactionRequestModel
+            Guid paymentId = feeModel.Payment.PaymentId;
+            List<TCPTransactionRequestModel>? tCPTransactions = null;
+            if (feeModel.Parking != null)
+            {
+                tCPTransactions = new List<TCPTransactionRequestModel>
+                {
+                    new TCPTransactionRequestModel
+                    {
+                        Direction = DirectionEnum.In,
+                        TCPTransactionId = Guid.NewGuid().ToString(),
+                        LaneId = feeModel.Parking.LaneInId ?? "",
+                        Photos = new List<string>{ feeModel.Parking.InVehiclePhotoUrl ?? "", feeModel.Parking.InPlateNumberPhotoUrl ?? "" },
+                        DateTime = feeModel.Parking.InEpoch.ToSpecificDateTime("SE Asia Standard Time")
+                    },
+                    new TCPTransactionRequestModel
+                    {
+                        Direction = DirectionEnum.Out,
+                        TCPTransactionId = Guid.NewGuid().ToString(),
+                        LaneId = feeModel.Parking.LaneOutId ?? "",
+                        Photos = new List<string>{ feeModel.Parking.OutVehiclePhotoUrl ?? "", feeModel.Parking.OutPlateNumberPhotoUrl ?? "" },
+                        DateTime = feeModel.Parking.OutEpoch.ToSpecificDateTime("SE Asia Standard Time")
+                    }
+                };
+            }
+
+            var transaction = await _dbContext.PaymentStatuses
+            .Where(x => x.PaymentId == paymentId && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
+            .Include(p => p.Payment)
+            .ThenInclude(x => x.Fee)
+            .Select(p => new VehicleLaneTransactionRequestModel
                 {
                     LaneInTransaction = laneInVehicleModel == null ? null 
                         : new VehicleLaneInTransactionRequestModel
@@ -84,14 +108,13 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                             PaymentMethod = p.PaymentMethod,
                             IsManual = feeModel.LaneOutVehicle.IsManual,
                         },
-                        TCPTransactions = null,
+                        TCPTransactions = tCPTransactions,
                         VETCRequest = null,
                         VETCResponse = null,
                         ParkingCode = feeModel.Parking == null ? null : feeModel.Parking.LocationId
                     },
-               }).FirstOrDefaultAsync();
-                return transaction;
-            }
-            
+                }).FirstOrDefaultAsync();
+            return transaction;
         }
     }
+}
