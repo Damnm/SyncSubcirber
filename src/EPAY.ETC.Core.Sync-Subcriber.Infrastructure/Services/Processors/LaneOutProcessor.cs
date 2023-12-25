@@ -63,7 +63,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             var transaction = await _dbContext.PaymentStatuses
             .Where(x => x.PaymentId == paymentId && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
             .Include(p => p.Payment)
-            .ThenInclude(x => x.Fee)
+            //.ThenInclude(f => f.Fee)
             .Select(p => new VehicleLaneTransactionRequestModel
                 {
                     LaneInTransaction = laneInVehicleModel == null ? null 
