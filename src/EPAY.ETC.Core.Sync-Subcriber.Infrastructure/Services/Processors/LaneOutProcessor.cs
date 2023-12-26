@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Models.Fees;
 using EPAY.ETC.Core.Models.Utils;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
@@ -31,11 +32,13 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
 
         public bool IsSupported(string msgType)
         {
-            return msgType == Constrant.MsgTypeOut;
+            return msgType == Constant.MsgTypeOut;
         }
         public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel feeModel, LaneInVehicleModel? laneInVehicleModel)
         {
             Guid paymentId = feeModel.Payment.PaymentId;
+
+            // Parking transactions
             List<TCPTransactionRequestModel>? tCPTransactions = null;
             if (feeModel.Parking != null)
             {
@@ -47,7 +50,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         TCPTransactionId = Guid.NewGuid().ToString(),
                         LaneId = feeModel.Parking.LaneInId ?? "",
                         Photos = new List<string>{ feeModel.Parking.InVehiclePhotoUrl ?? "", feeModel.Parking.InPlateNumberPhotoUrl ?? "" },
-                        DateTime = feeModel.Parking.InEpoch.ToSpecificDateTime("SE Asia Standard Time")
+                        DateTime = feeModel.Parking.InEpoch.ToSpecificDateTime(Constant.DefaultTimeZoneName)
                     },
                     new TCPTransactionRequestModel
                     {
@@ -55,7 +58,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         TCPTransactionId = Guid.NewGuid().ToString(),
                         LaneId = feeModel.Parking.LaneOutId ?? "",
                         Photos = new List<string>{ feeModel.Parking.OutVehiclePhotoUrl ?? "", feeModel.Parking.OutPlateNumberPhotoUrl ?? "" },
-                        DateTime = feeModel.Parking.OutEpoch.ToSpecificDateTime("SE Asia Standard Time")
+                        DateTime = feeModel.Parking.OutEpoch.ToSpecificDateTime(Constant.DefaultTimeZoneName)
                     }
                 };
             }
@@ -63,14 +66,13 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             var transaction = await _dbContext.PaymentStatuses
             .Where(x => x.PaymentId == paymentId && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
             .Include(p => p.Payment)
-            //.ThenInclude(f => f.Fee)
             .Select(p => new VehicleLaneTransactionRequestModel
                 {
                     LaneInTransaction = laneInVehicleModel == null ? null 
                         : new VehicleLaneInTransactionRequestModel
                         {
                             TransactionId = p.TransactionId,
-                            LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime("SE Asia Standard Time")
+                            LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime(Constant.DefaultTimeZoneName)
                         },
                     LaneOutTransaction = new VehicleLaneOutTransactionRequestModel()
                     {
@@ -78,13 +80,14 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         StationId = stationId,
                         LaneId = $"{stationId}{int.Parse(p.Payment.LaneOutId ?? "01"):D2}",
                         EmployeeId = p.Payment.Fee.EmployeeId ?? "030002",
-                        LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now.ConvertToTimeZone(DateTimeKind.Local, "SE Asia Standard Time"),
-                        ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour <12 ? "030101":"030102",
+                        LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now.ConvertToTimeZone(DateTimeKind.Local, Constant.DefaultTimeZoneName),
+                        ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour < 12 ? "030101":"030102",
                         IsOCRSuccessful = false,
                         VehicleDetails = new VehicleLaneOutDetailRequestModel
                         {
                             RFID = p.Payment.RFID,
-                            VehicleTypeId = p.Payment.CustomVehicleType == null ? null : p.Payment.CustomVehicleType.ExternalId.Substring(p.Payment.CustomVehicleType.ExternalId.Length - 2),
+                            VehicleTypeId = p.Payment.CustomVehicleType == null ? null
+                                : p.Payment.CustomVehicleType.ExternalId.Substring(p.Payment.CustomVehicleType.ExternalId.Length - 2),
                             FrontPlateColour = p.Payment.Fee.PlateColour,
                             FrontPlateNumber = p.Payment.Fee.PlateNumber,
                             FrontImage = p.Payment.Fee.LaneOutVehiclePhotoUrl,
@@ -96,7 +99,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         {
                             //TicketType = p.Payment.Fee.TicketTypeId,
                             PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null 
-                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Contract" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
+                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Contract.ToString() ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                             ChargeAmount = (int?)p.Payment.Fee.Amount,
                             DurationTime = (int)Math.Ceiling((decimal)p.Payment.Duration / 60),
                             TicketId = p.Payment.Fee.TicketId,
@@ -104,7 +107,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                             UseTcpParking = feeModel.Parking != null,
                             IsNonCash = false,
                             ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null 
-                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == "Priority" ? p.Payment.Fee.VehicleCategory.ExternalId : null),
+                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Priority.ToString() ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                             PaymentMethod = p.PaymentMethod,
                             IsManual = feeModel.LaneOutVehicle.IsManual,
                         },

@@ -21,7 +21,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
 
         public bool IsSupported(string msgType)
         {
-            return msgType == Constrant.MsgTypeIn;
+            return msgType == Constant.MsgTypeIn;
         }
         public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel feeModel, LaneInVehicleModel laneInVehicleModel)
         {
@@ -33,7 +33,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     StationId = stationId,
                     LaneId = $"{stationId}{int.Parse(laneInVehicleModel.LaneInId ?? "01"):D2}",
                     ShiftId = "030101", // feeModel.ShiftId ??
-                    LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime("SE Asia Standard Time"),
+                    LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime(Constant.DefaultTimeZoneName),
                     TCPCheckPoint = string.Empty,
                     VehicleDetails = laneInVehicleModel.VehicleInfo == null 
                         ? new VehicleLaneInDetailRequestModel { RFID = laneInVehicleModel.RFID } 

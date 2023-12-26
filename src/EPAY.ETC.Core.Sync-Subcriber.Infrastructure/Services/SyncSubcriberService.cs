@@ -35,12 +35,12 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         public async Task<bool> SyncSubcriber(string message, string msgType)
         {
             _logger.LogInformation($"Executing {nameof(SyncSubcriber)} method...Message: {message}. MessageType: {msgType}");
-            string direction = msgType == Constrant.MsgTypeIn ? "in" : "out";
+            string direction = msgType == Constant.MsgTypeIn ? "in" : "out";
             bool result = false;
 
             try
             {
-                if (!string.IsNullOrEmpty(msgType) && (msgType == Constrant.MsgTypeOut || msgType == Constrant.MsgTypeIn))
+                if (!string.IsNullOrEmpty(msgType) && (msgType == Constant.MsgTypeOut || msgType == Constant.MsgTypeIn))
                 {
                     FeeModel? feeModel = null;
                     LaneInVehicleModel? laneInModel = null;
@@ -84,25 +84,29 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                             if (response.Succeeded)
                             {
                                 result = true;
-                                Console.WriteLine("Sync data success");
-                                _logger.LogInformation("Sync data success");
+                                string logMessage = "Sync data success";
+                                Console.WriteLine(logMessage);
+                                _logger.LogInformation(logMessage);
                             }
                             else
                             {
-                                Console.WriteLine($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
-                                _logger.LogError($"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
+                                string logMessage = $"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}";
+                                Console.WriteLine(logMessage);
+                                _logger.LogError(logMessage);
                             }
                         }
                         else
                         {
-                            Console.WriteLine($"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}");
-                            _logger.LogError($"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}");
+                            string logMessage = $"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}";
+                            Console.WriteLine(logMessage);
+                            _logger.LogError(logMessage);
                         }
                     }
                     else
                     {
-                        Console.WriteLine($"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found");
-                        _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found");
+                        string logMessage = $"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found";
+                        Console.WriteLine(logMessage);
+                        _logger.LogError(logMessage);
                     }
                 }
 
@@ -110,8 +114,9 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}\r\n");
-                _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}");
+                string logMessage = $"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}";
+                Console.WriteLine(logMessage);
+                _logger.LogError(logMessage);
                 return result;
             }
         }
