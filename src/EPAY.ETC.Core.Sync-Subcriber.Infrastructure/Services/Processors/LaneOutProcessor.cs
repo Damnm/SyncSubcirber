@@ -42,25 +42,30 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             List<TCPTransactionRequestModel>? tCPTransactions = null;
             if (feeModel.Parking != null)
             {
-                tCPTransactions = new List<TCPTransactionRequestModel>
+                tCPTransactions = new List<TCPTransactionRequestModel>();
+                if (feeModel.Parking.InEpoch != 0)
                 {
-                    new TCPTransactionRequestModel
+                    tCPTransactions.Add(new TCPTransactionRequestModel
                     {
                         Direction = DirectionEnum.In,
                         TCPTransactionId = Guid.NewGuid().ToString(),
                         LaneId = feeModel.Parking.LaneInId ?? "",
-                        Photos = new List<string>{ feeModel.Parking.InVehiclePhotoUrl ?? "", feeModel.Parking.InPlateNumberPhotoUrl ?? "" },
+                        Photos = new List<string> { feeModel.Parking.InVehiclePhotoUrl ?? "", feeModel.Parking.InPlateNumberPhotoUrl ?? "" },
                         DateTime = feeModel.Parking.InEpoch.ToSpecificDateTime(Constant.DefaultTimeZoneName)
-                    },
-                    new TCPTransactionRequestModel
+                    });
+                }
+
+                if (feeModel.Parking.OutEpoch != 0)
+                {
+                    tCPTransactions.Add(new TCPTransactionRequestModel
                     {
                         Direction = DirectionEnum.Out,
                         TCPTransactionId = Guid.NewGuid().ToString(),
                         LaneId = feeModel.Parking.LaneOutId ?? "",
-                        Photos = new List<string>{ feeModel.Parking.OutVehiclePhotoUrl ?? "", feeModel.Parking.OutPlateNumberPhotoUrl ?? "" },
+                        Photos = new List<string> { feeModel.Parking.OutVehiclePhotoUrl ?? "", feeModel.Parking.OutPlateNumberPhotoUrl ?? "" },
                         DateTime = feeModel.Parking.OutEpoch.ToSpecificDateTime(Constant.DefaultTimeZoneName)
-                    }
-                };
+                    });
+                }
             }
 
             var transaction = await _dbContext.PaymentStatuses
