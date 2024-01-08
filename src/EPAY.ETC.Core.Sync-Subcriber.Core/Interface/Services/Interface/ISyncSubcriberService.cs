@@ -2,6 +2,6 @@
 {
     public interface ISyncSubcriberService
     {
-        Task<bool> SyncSubcriber(string message,string msgType);
+        Task<bool> SyncSubcriber(string message, string msgType);
     }
 }

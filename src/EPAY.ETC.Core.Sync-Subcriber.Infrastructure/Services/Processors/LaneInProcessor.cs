@@ -32,11 +32,11 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     TransactionId = $"TRANS{laneInVehicleModel.Epoch}",
                     StationId = stationId,
                     LaneId = $"{stationId}{int.Parse(laneInVehicleModel.LaneInId ?? "01"):D2}",
-                    ShiftId = "030101", // feeModel.ShiftId ??
-                    LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime(Constant.DefaultTimeZoneName),
+                    ShiftId = laneInVehicleModel.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName).Hour > 12 ? "030101" : "030102", // feeModel.ShiftId
+                    LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName),
                     TCPCheckPoint = string.Empty,
-                    VehicleDetails = laneInVehicleModel.VehicleInfo == null 
-                        ? new VehicleLaneInDetailRequestModel { RFID = laneInVehicleModel.RFID } 
+                    VehicleDetails = laneInVehicleModel.VehicleInfo == null
+                        ? new VehicleLaneInDetailRequestModel { RFID = laneInVehicleModel.RFID }
                         : new VehicleLaneInDetailRequestModel()
                         {
                             RFID = laneInVehicleModel.RFID,

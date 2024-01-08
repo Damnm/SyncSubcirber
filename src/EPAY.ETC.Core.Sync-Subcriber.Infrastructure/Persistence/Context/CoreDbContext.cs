@@ -24,7 +24,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
             modelBuilder.ApplyConfigurationsFromAssembly(GetType().Assembly);
             base.OnModelCreating(modelBuilder);
             #region Fee configuration
-            modelBuilder.Entity<FeeModel>().HasKey(x => x.Id);       
+            modelBuilder.Entity<FeeModel>().HasKey(x => x.Id);
             modelBuilder.Entity<FeeModel>().HasIndex(x => x.CustomVehicleTypeId);
             modelBuilder.Entity<FeeModel>().HasIndex(x => x.PlateNumber);
             modelBuilder.Entity<FeeModel>().HasIndex(x => x.TicketId);
@@ -61,7 +61,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
             modelBuilder.Entity<PaymentModel>().HasIndex(x => x.LaneInId);
             modelBuilder.Entity<PaymentModel>().HasIndex(x => x.LaneOutId);
             modelBuilder.Entity<PaymentModel>().HasIndex(x => x.RFID);
-            modelBuilder.Entity<PaymentModel>().HasIndex(x => x.PlateNumber);    
+            modelBuilder.Entity<PaymentModel>().HasIndex(x => x.PlateNumber);
             modelBuilder.Entity<PaymentModel>()
                 .HasOne(x => x.Fee)
                 .WithMany(x => x.Payments)

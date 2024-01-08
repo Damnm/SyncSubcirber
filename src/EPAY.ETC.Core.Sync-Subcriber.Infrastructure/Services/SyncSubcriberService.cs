@@ -17,7 +17,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
     public class SyncSubcriberService : ISyncSubcriberService
     {
         private readonly ILogger<SyncSubcriberService> _logger;
-        public  readonly IEnumerable<ILaneProcesscor> _laneProcesscor;
+        public readonly IEnumerable<ILaneProcesscor> _laneProcesscor;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
         private string AdminApiUrl;

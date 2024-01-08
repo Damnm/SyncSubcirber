@@ -4,6 +4,6 @@
     {
         public static string MsgTypeIn = "In";
         public static string MsgTypeOut = "Fees";
-        public static string DefaultTimeZoneName = "SE Asia Standard Time";
+        public static string AsianTimeZoneName = "SE Asia Standard Time";
     }
 }

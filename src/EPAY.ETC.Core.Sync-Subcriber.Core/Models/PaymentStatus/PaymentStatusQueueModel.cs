@@ -5,7 +5,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.PaymentStatus
 {
     public class PaymentStatusQueueModel
     {
-         public PaymentStatusResponseQueueModel Data { set; get; }
+        public PaymentStatusResponseQueueModel Data { set; get; }
     }
 
     public class PaymentStatusResponseQueueModel

@@ -1,5 +1,4 @@
 ﻿using EPAY.ETC.Core.Models.Constants;
-using EPAY.ETC.Core.Publisher.DependencyInjectionExtensions;
 using EPAY.ETC.Core.RabbitMQ.Common.Enums;
 using EPAY.ETC.Core.RabbitMQ.DependencyInjectionExtensions;
 using EPAY.ETC.Core.Subscriber.Common.Options;
@@ -10,17 +9,13 @@ using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.Configs;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
-using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Nest;
-using Newtonsoft.Json;
 using NLog;
 using NLog.Extensions.Logging;
-using System.Security.Authentication;
 using System.Text;
 
 HostBuilder builder = new HostBuilder();
@@ -168,9 +163,10 @@ var host = builder.Build();
 
 try
 {
-host.Run();
+    host.Run();
 
-}catch  (Exception ex)
+}
+catch (Exception ex)
 {
     Console.WriteLine(ex.ToString());
 }
