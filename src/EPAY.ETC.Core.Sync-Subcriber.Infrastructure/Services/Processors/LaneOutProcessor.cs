@@ -34,94 +34,137 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         {
             return msgType == Constant.MsgTypeOut;
         }
-        public async Task<VehicleLaneTransactionRequestModel?> ProcessAsync(FeeModel feeModel, LaneInVehicleModel? laneInVehicleModel)
+        public async Task<VehicleLaneTransactionRequestModel?> ProcessAsync(FeeModel fee, LaneInVehicleModel? laneInVehicle)
         {
-            if (feeModel.Payment == null)
+            if (fee.Payment == null)
                 return null;
 
             // Parking transactions
             List<TCPTransactionRequestModel>? tCPTransactions = null;
-            if (feeModel.Parking != null)
+            if (fee.Parking != null)
             {
                 tCPTransactions = new List<TCPTransactionRequestModel>();
-                if (feeModel.Parking.InEpoch != 0)
+                if (fee.Parking.InEpoch != 0)
                 {
                     tCPTransactions.Add(new TCPTransactionRequestModel
                     {
                         Direction = DirectionEnum.In,
                         TCPTransactionId = Guid.NewGuid().ToString(),
-                        LaneId = feeModel.Parking.LaneInId ?? "",
-                        Photos = new List<string> { feeModel.Parking.InVehiclePhotoUrl ?? "", feeModel.Parking.InPlateNumberPhotoUrl ?? "" },
-                        DateTime = feeModel.Parking.InEpoch.ToSpecificDateTime(Constant.AsianTimeZoneName)
+                        LaneId = fee.Parking.LaneInId ?? "",
+                        Photos = new List<string> { fee.Parking.InVehiclePhotoUrl ?? "", fee.Parking.InPlateNumberPhotoUrl ?? "" },
+                        DateTime = fee.Parking.InEpoch.ToSpecificDateTime(Constant.AsianTimeZoneName)
                     });
                 }
 
-                if (feeModel.Parking.OutEpoch != 0)
+                if (fee.Parking.OutEpoch != 0)
                 {
                     tCPTransactions.Add(new TCPTransactionRequestModel
                     {
                         Direction = DirectionEnum.Out,
                         TCPTransactionId = Guid.NewGuid().ToString(),
-                        LaneId = feeModel.Parking.LaneOutId ?? "",
-                        Photos = new List<string> { feeModel.Parking.OutVehiclePhotoUrl ?? "", feeModel.Parking.OutPlateNumberPhotoUrl ?? "" },
-                        DateTime = feeModel.Parking.OutEpoch.ToSpecificDateTime(Constant.AsianTimeZoneName)
+                        LaneId = fee.Parking.LaneOutId ?? "",
+                        Photos = new List<string> { fee.Parking.OutVehiclePhotoUrl ?? "", fee.Parking.OutPlateNumberPhotoUrl ?? "" },
+                        DateTime = fee.Parking.OutEpoch.ToSpecificDateTime(Constant.AsianTimeZoneName)
                     });
                 }
             }
 
             // Airport transaction
-            Guid paymentId = feeModel.Payment.PaymentId;
+            Guid paymentId = fee.Payment.PaymentId;
             var transaction = await _dbContext.PaymentStatuses
             .Where(x => x.PaymentId == paymentId && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
             .Include(p => p.Payment)
             .Select(p => new VehicleLaneTransactionRequestModel
             {
-                LaneInTransaction = laneInVehicleModel == null ? null
+                LaneInTransaction = laneInVehicle == null ? null
                         : new VehicleLaneInTransactionRequestModel
                         {
-                            TransactionId = $"TRANS{laneInVehicleModel.Epoch}",
-                            LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName)
+                            TransactionId = $"TRANS{laneInVehicle.Epoch}",
+                            LaneInDate = laneInVehicle.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName)
                         },
                 LaneOutTransaction = new VehicleLaneOutTransactionRequestModel()
                 {
                     TransactionId = p.TransactionId,
                     StationId = stationId,
-                    LaneId = $"{stationId}{int.Parse(feeModel.LaneOutVehicle.LaneOutId ?? "01"):D2}",
-                    EmployeeId = feeModel.EmployeeId,
+                    LaneId = $"{stationId}{int.Parse(fee.LaneOutVehicle.LaneOutId ?? "01"):D2}",
+                    EmployeeId = fee.EmployeeId,
                     LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now.ConvertToTimeZone(DateTimeKind.Local, Constant.AsianTimeZoneName),
                     ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour < 12 ? "030101" : "030102",
-                    IsOCRSuccessful = !string.IsNullOrEmpty(feeModel.LaneOutVehicle.VehicleInfo.PlateNumber) || !string.IsNullOrEmpty(feeModel.LaneOutVehicle.VehicleInfo.RearPlateNumber),
+                    IsOCRSuccessful = !string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.PlateNumber) || !string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.RearPlateNumber),
                     VehicleDetails = new VehicleLaneOutDetailRequestModel
                     {
-                        RFID = feeModel.Payment.RFID,
+                        RFID = fee.Payment.RFID,
                         VehicleTypeId = p.Payment.CustomVehicleType == null ? null
                                 : p.Payment.CustomVehicleType.ExternalId.Substring(p.Payment.CustomVehicleType.ExternalId.Length - 2),
-                        FrontPlateColour = string.IsNullOrEmpty(feeModel.LaneOutVehicle.VehicleInfo.PlateColour) ? feeModel.LaneOutVehicle.VehicleInfo.RearPlateColour : feeModel.LaneOutVehicle.VehicleInfo.PlateColour,
-                        FrontPlateNumber = string.IsNullOrEmpty(feeModel.LaneOutVehicle.VehicleInfo.PlateNumber) ? feeModel.LaneOutVehicle.VehicleInfo.RearPlateNumber : feeModel.LaneOutVehicle.VehicleInfo.PlateNumber,
-                        FrontImage = string.IsNullOrEmpty(feeModel.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl) ? feeModel.LaneOutVehicle.VehicleInfo.VehicleRearPhotoUrl : feeModel.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl,
-                        FrontPlateNumberImage = string.IsNullOrEmpty(feeModel.LaneOutVehicle.VehicleInfo.PlateNumberPhotoUrl) ? feeModel.LaneOutVehicle.VehicleInfo.PlateNumberRearPhotoUrl : feeModel.LaneOutVehicle.VehicleInfo.PlateNumberPhotoUrl,
-                        VehicleChargeType = feeModel.LaneOutVehicle.VehicleChargeType
+                        FrontPlateColour = string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.PlateColour) ? fee.LaneOutVehicle.VehicleInfo.RearPlateColour : fee.LaneOutVehicle.VehicleInfo.PlateColour,
+                        FrontPlateNumber = string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.PlateNumber) ? fee.LaneOutVehicle.VehicleInfo.RearPlateNumber : fee.LaneOutVehicle.VehicleInfo.PlateNumber,
+                        FrontImage = string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl) ? fee.LaneOutVehicle.VehicleInfo.VehicleRearPhotoUrl : fee.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl,
+                        FrontPlateNumberImage = string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.PlateNumberPhotoUrl) ? fee.LaneOutVehicle.VehicleInfo.PlateNumberRearPhotoUrl : fee.LaneOutVehicle.VehicleInfo.PlateNumberPhotoUrl,
+                        VehicleChargeType = fee.LaneOutVehicle.VehicleChargeType
                     },
                     Payment = new VehicleLaneOutPaymentRequestModel
                     {
                         PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null
                                 : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Contract.ToString() ? p.Payment.Fee.VehicleCategory.ExternalId : null),
-                        ChargeAmount = (int?)feeModel.Payment.Amount,
-                        DurationTime = (int)Math.Ceiling((decimal)feeModel.Payment.Duration / 60),
-                        TicketId = feeModel.Payment.TicketId,
+                        ChargeAmount = (int?)fee.Payment.Amount,
+                        DurationTime = (int)Math.Ceiling((decimal)fee.Payment.Duration / 60),
+                        TicketId = fee.Payment.TicketId,
                         eTicket = null,
-                        UseTcpParking = feeModel.Parking != null,
+                        UseTcpParking = fee.Parking != null,
                         IsNonCash = false,
                         ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null
                                 : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Priority.ToString() ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                         PaymentMethod = p.PaymentMethod,
-                        IsManual = feeModel.LaneOutVehicle.IsManual,
+                        IsManual = fee.LaneOutVehicle.IsManual,
                     },
                     TCPTransactions = tCPTransactions,
-                    ParkingCode = feeModel.Parking == null ? null : feeModel.Parking.LocationId
+                    ParkingCode = fee.Parking == null ? null : fee.Parking.LocationId
                 },
             }).FirstOrDefaultAsync();
+
             return transaction;
+        }
+
+        public async Task<EpayReportTransactionModel?> ProcessEpayReportAsync(FeeModel fee)
+        {
+            EpayReportTransactionModel? result = null;
+            try
+            {
+                result = await _dbContext.Fees
+                    .Where(f => f.Id == fee.FeeId)
+                    .Include(f => f.Payments)
+                        .ThenInclude(p => p.PaymentStatuses)
+                    .Include(f => f.Payments)
+                        .ThenInclude(p => p.ETCCheckOuts)
+                    .Include(f => f.ParkingLogs)
+                    .Select(f => new EpayReportTransactionModel()
+                    {
+                        Fee = _mapper.Map<EpayReportFeeModel>(f),
+                        Payment = f.Payments.Any() ? _mapper.Map<EpayReportPaymentModel>(f.Payments.First()) : null,
+                        ParkingLog = f.ParkingLogs.Any() ? _mapper.Map<EpayReportParkingLogModel>(f.ParkingLogs.First()) : null
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (result != null)
+                {
+                    result.Fee.AirportId = "TIA";
+                    result.Fee.AirportName = $"Tân Sơn Nhất";
+
+                    result.Fee.LaneInPlateNumberPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.PlateNumberPhotoUrl;
+                    result.Fee.LaneInVehiclePhotoUrl = fee.LaneInVehicle?.VehicleInfo?.VehiclePhotoUrl;
+                    result.Fee.LaneInPlateNumberRearPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.PlateNumberRearPhotoUrl;
+                    result.Fee.LaneInVehicleRearPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.VehicleRearPhotoUrl;
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                string logMessage = $"Failed to run {nameof(ProcessEpayReportAsync)} method. Error: {ex.Message}. StackTrace: {ex.StackTrace}";
+                Console.WriteLine(logMessage);
+                _logger.LogError(logMessage);
+                return result;
+            }
         }
     }
 }

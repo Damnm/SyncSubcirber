@@ -23,39 +23,44 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         {
             return msgType == Constant.MsgTypeIn;
         }
-        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel feeModel, LaneInVehicleModel laneInVehicleModel)
+        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel fee, LaneInVehicleModel laneIn)
         {
             VehicleLaneTransactionRequestModel transaction = new VehicleLaneTransactionRequestModel
             {
                 LaneInTransaction = new VehicleLaneInTransactionRequestModel()
                 {
-                    TransactionId = $"TRANS{laneInVehicleModel.Epoch}",
+                    TransactionId = $"TRANS{laneIn.Epoch}",
                     StationId = stationId,
-                    LaneId = $"{stationId}{int.Parse(laneInVehicleModel.LaneInId ?? "01"):D2}",
-                    ShiftId = laneInVehicleModel.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName).Hour > 12 ? "030101" : "030102", // feeModel.ShiftId
-                    LaneInDate = laneInVehicleModel.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName),
+                    LaneId = $"{stationId}{int.Parse(laneIn.LaneInId ?? "01"):D2}",
+                    ShiftId = laneIn.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName).Hour > 12 ? "030101" : "030102", // feeModel.ShiftId
+                    LaneInDate = laneIn.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName),
                     TCPCheckPoint = string.Empty,
-                    VehicleDetails = laneInVehicleModel.VehicleInfo == null
-                        ? new VehicleLaneInDetailRequestModel { RFID = laneInVehicleModel.RFID }
+                    VehicleDetails = laneIn.VehicleInfo == null
+                        ? new VehicleLaneInDetailRequestModel { RFID = laneIn.RFID }
                         : new VehicleLaneInDetailRequestModel()
                         {
-                            RFID = laneInVehicleModel.RFID,
-                            FrontPlateColour = laneInVehicleModel.VehicleInfo.PlateColour,
-                            RearPlateColour = laneInVehicleModel.VehicleInfo.RearPlateColour,
-                            FrontPlateNumber = laneInVehicleModel.VehicleInfo.PlateNumber,
-                            RearPlateNumber = laneInVehicleModel.VehicleInfo.RearPlateNumber,
-                            FrontImage = laneInVehicleModel.VehicleInfo.VehiclePhotoUrl,
-                            FrontPlateNumberImage = laneInVehicleModel.VehicleInfo.PlateNumberPhotoUrl,
-                            RearImage = laneInVehicleModel.VehicleInfo.VehicleRearPhotoUrl,
-                            RearPlateNumberImage = laneInVehicleModel.VehicleInfo.PlateNumberRearPhotoUrl,
+                            RFID = laneIn.RFID,
+                            FrontPlateColour = laneIn.VehicleInfo.PlateColour,
+                            RearPlateColour = laneIn.VehicleInfo.RearPlateColour,
+                            FrontPlateNumber = laneIn.VehicleInfo.PlateNumber,
+                            RearPlateNumber = laneIn.VehicleInfo.RearPlateNumber,
+                            FrontImage = laneIn.VehicleInfo.VehiclePhotoUrl,
+                            FrontPlateNumberImage = laneIn.VehicleInfo.PlateNumberPhotoUrl,
+                            RearImage = laneIn.VehicleInfo.VehicleRearPhotoUrl,
+                            RearPlateNumberImage = laneIn.VehicleInfo.PlateNumberRearPhotoUrl,
                             ImageExtension = "JPG",
-                            VehicleTypeId = laneInVehicleModel.VehicleInfo.VehicleType?.ConvertVehicleType(),
+                            VehicleTypeId = laneIn.VehicleInfo.VehicleType?.ConvertVehicleType(),
                         },
                 },
                 LaneOutTransaction = null
             };
 
             return transaction;
+        }
+
+        public Task<EpayReportTransactionModel?> ProcessEpayReportAsync(FeeModel fee)
+        {
+            throw new NotImplementedException();
         }
     }
 }

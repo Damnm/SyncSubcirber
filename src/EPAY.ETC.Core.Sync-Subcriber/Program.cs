@@ -1,4 +1,5 @@
 ﻿using EPAY.ETC.Core.Models.Constants;
+using EPAY.ETC.Core.Publisher.DependencyInjectionExtensions;
 using EPAY.ETC.Core.RabbitMQ.Common.Enums;
 using EPAY.ETC.Core.RabbitMQ.DependencyInjectionExtensions;
 using EPAY.ETC.Core.Subscriber.Common.Options;
@@ -41,6 +42,7 @@ builder.ConfigureServices(async (hostContext, services) =>
 
     services.AddRabbitMQCore(hostContext.Configuration);
     services.AddRabbitMQSubscriber();
+    services.AddRabbitMQPublisher();
 
     // Infrastructure config
     services.AddInfrastructure(hostContext.Configuration);
@@ -152,9 +154,9 @@ builder.ConfigureServices(async (hostContext, services) =>
         Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} - Processed done\r\n");
 
         if (result)
-            subscriber.Acknowledge(opt.DeliveryTag);
+            subscriber.Acknowledge(opt.ConsumerTag, opt.DeliveryTag);
         else
-            subscriber.NotAcknowledge(opt.DeliveryTag);
+            subscriber.NotAcknowledge(opt.ConsumerTag, opt.DeliveryTag);
     });
 });
 

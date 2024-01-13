@@ -34,5 +34,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
         public double Amount { get; set; }
 
         public virtual ICollection<PaymentStatusModel>? PaymentStatuses { get; set; }
+        public virtual ICollection<ETCCheckoutModel>? ETCCheckOuts { get; set; }
     }
 }
