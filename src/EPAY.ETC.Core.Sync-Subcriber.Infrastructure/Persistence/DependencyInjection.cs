@@ -24,7 +24,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence
             services.AddTransient<ILaneProcesscor, LaneOutProcessor>();
             services.AddTransient<ILaneProcesscor, LaneInProcessor>();
 
-            services.AddTransient<IRabbitMQService, RabbitMQService>();
+            services.AddTransient<IImageService, ImageService>();
 
             return services;
         }

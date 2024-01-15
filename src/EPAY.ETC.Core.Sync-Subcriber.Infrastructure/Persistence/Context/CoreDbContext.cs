@@ -22,6 +22,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
         public virtual DbSet<ETCCheckoutModel> ETCCheckOuts { get; set; }
         public virtual DbSet<ParkingLogModel> ParkingLogs { get; set; }
         public virtual DbSet<CustomVehicleTypeModel> CustomVehicleTypes { get; set; }
+        public virtual DbSet<VehicleCategoryModel> VehicleCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -113,6 +114,14 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
                 .Property(x => x.Name)
                 .HasMaxLength(50)
                 .HasConversion(new EnumToStringConverter<CustomVehicleTypeEnum>());
+            #endregion
+
+            #region Vehicle category configuration
+            modelBuilder.Entity<VehicleCategoryModel>().HasKey(x => x.Id);
+            modelBuilder.Entity<VehicleCategoryModel>()
+                .Property(x => x.VehicleCategoryType)
+                .HasMaxLength(20)
+                .HasConversion(new EnumToStringConverter<VehicleCategoryTypeEnum>());
             #endregion
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

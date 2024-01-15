@@ -19,7 +19,9 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         private readonly IMapper _mapper;
         private readonly CoreDbContext _dbContext;
         private readonly IConfiguration _configuration;
-        private string stationId = string.Empty;
+        private string _stationId = string.Empty;
+        private string _airPortId = string.Empty;
+        private string _airPortName = string.Empty;
         public LaneOutProcessor(ILogger<LaneOutProcessor> logger,
              IMapper mapper, IConfiguration configuration, CoreDbContext dbContext)
         {
@@ -27,7 +29,9 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             _logger = logger;
             _dbContext = dbContext;
             _configuration = configuration;
-            stationId = _configuration["StationId"];
+            _stationId = _configuration["StationId"];
+            _airPortId = _configuration["AirportId"];
+            _airPortName = _configuration["AirportName"];
         }
 
         public bool IsSupported(string msgType)
@@ -85,8 +89,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                 LaneOutTransaction = new VehicleLaneOutTransactionRequestModel()
                 {
                     TransactionId = p.TransactionId,
-                    StationId = stationId,
-                    LaneId = $"{stationId}{int.Parse(fee.LaneOutVehicle.LaneOutId ?? "01"):D2}",
+                    StationId = _stationId,
+                    LaneId = $"{_stationId}{int.Parse(fee.LaneOutVehicle.LaneOutId ?? "01"):D2}",
                     EmployeeId = fee.EmployeeId,
                     LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now.ConvertToTimeZone(DateTimeKind.Local, Constant.AsianTimeZoneName),
                     ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour < 12 ? "030101" : "030102",
@@ -136,6 +140,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         .ThenInclude(p => p.PaymentStatuses)
                     .Include(f => f.Payments)
                         .ThenInclude(p => p.ETCCheckOuts)
+                    .Include(f => f.CustomVehicleType)
+                    .Include(f => f.VehicleCategory)
                     .Include(f => f.ParkingLogs)
                     .Select(f => new EpayReportTransactionModel()
                     {
@@ -147,8 +153,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
 
                 if (result != null)
                 {
-                    result.Fee.AirportId = "TIA";
-                    result.Fee.AirportName = $"Tân Sơn Nhất";
+                    result.Fee.AirportId = _airPortId;
+                    result.Fee.AirportName = _airPortName;
 
                     result.Fee.LaneInPlateNumberPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.PlateNumberPhotoUrl;
                     result.Fee.LaneInVehiclePhotoUrl = fee.LaneInVehicle?.VehicleInfo?.VehiclePhotoUrl;
@@ -160,9 +166,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             }
             catch (Exception ex)
             {
-                string logMessage = $"Failed to run {nameof(ProcessEpayReportAsync)} method. Error: {ex.Message}. StackTrace: {ex.StackTrace}";
-                Console.WriteLine(logMessage);
-                _logger.LogError(logMessage);
+                _logger.LogError($"Failed to run {nameof(ProcessEpayReportAsync)} method. Error: {ex.Message}. StackTrace: {ex.StackTrace}");
                 return result;
             }
         }

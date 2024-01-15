@@ -7,5 +7,6 @@ services:
     environment:
     - ASPNETCORE_ENVIRONMENT=Development
     - ADMIN_API_BASE_ENVIRONMENT=http://10.10.74.40/api/
+    - EPAY_REPORT_API_BASE_ENVIRONMENT=http://10.10.74.67:8899/api/
     - LANEOUTID_ENVIRONMENT=1
     restart: always

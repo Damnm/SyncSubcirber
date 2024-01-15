@@ -135,7 +135,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                     if (response.Succeeded)
                     {
                         result = true;
-                        Console.WriteLine("Sync data success");
+                        Console.WriteLine("Sync data to Back Office successfully");
                     }
                     else
                         _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
@@ -163,7 +163,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                     var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);
                     if (response.Succeeded)
                     {
-                        string infoMessage = "Sync data to Epay Report Center successfully";
+                        string infoMessage = "Sync data to Epay Report successfully";
                         Console.WriteLine(infoMessage);
                         _logger.LogInformation(infoMessage);
                     }
