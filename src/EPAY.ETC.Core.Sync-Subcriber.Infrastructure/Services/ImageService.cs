@@ -1,0 +1,66 @@
+﻿using EPAY.ETC.Core.Models.Constants;
+using EPAY.ETC.Core.Models.Fees;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.ImageEmbedInfo;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+
+namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
+{
+    public class ImageService : IImageService
+    {
+        private readonly ILogger<ImageService> _logger;
+        public ImageService(ILogger<ImageService> logger)
+        {
+            _logger = logger;
+        }
+
+        public async Task<string> GetUrlImageEmbedInfoUrl(HttpClient _httpClient, string apiUrl, ImageEmbedInfoRequest request)
+        {
+            _logger.LogInformation($"Executing {nameof(GetUrlImageEmbedInfoUrl)} method...");
+            string result = string.Empty;
+
+            try
+            {
+                var responseMessage = await HttpClientUtil.PostData(_httpClient, $"{apiUrl}Media/v1/embed-info", JsonConvert.SerializeObject(request));
+
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    var response = await HttpsExtensions.ReturnApiResponse<EmbedInfoResponse>(responseMessage);
+                    if (response.Succeeded)
+                    {
+                        result = response.Data?.PhotoUrl;
+                    }
+                    else
+                    {
+                        string logMessage = $"Failed to {nameof(GetUrlImageEmbedInfoUrl)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}";
+                        _logger.LogError(logMessage);
+                    }
+                }
+                else
+                {
+                    string logMessage = $"Failed to {nameof(GetUrlImageEmbedInfoUrl)} method. Error: {responseMessage.StatusCode}";
+                    _logger.LogError(logMessage);
+                }
+
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to run {nameof(GetUrlImageEmbedInfoUrl)} method. Error: {ex.Message}");
+                return result;
+            }
+        }
+    }
+}

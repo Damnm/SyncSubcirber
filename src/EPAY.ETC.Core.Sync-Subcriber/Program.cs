@@ -63,7 +63,7 @@ builder.ConfigureServices(async (hostContext, services) =>
 
     ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
     ILaneProcesscor laneProcesscor = serviceProvider.GetRequiredService<ILaneProcesscor>();
-
+    IImageService iamgeService= serviceProvider.GetRequiredService<IImageService>();
     ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
     ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 

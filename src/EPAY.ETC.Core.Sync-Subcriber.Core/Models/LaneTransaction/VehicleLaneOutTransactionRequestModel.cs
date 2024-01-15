@@ -57,6 +57,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         [MaxLength(15)]
         public string? FrontPlateNumber { set; get; }
         public string? FrontImage { set; get; }
+        public string? LaneOutImageEmbedInfoURL { set; get; }
         public string? FrontPlateNumberImage { set; get; }
         [MaxLength(5)]
         public string? ImageExtension { set; get; }

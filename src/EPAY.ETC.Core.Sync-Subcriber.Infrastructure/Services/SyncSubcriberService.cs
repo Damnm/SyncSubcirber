@@ -2,21 +2,18 @@
 using EPAY.ETC.Core.Models.Constants;
 using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Models.Fees;
-using EPAY.ETC.Core.Publisher.Common.Options;
-using EPAY.ETC.Core.RabbitMQ.Common.Events;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.ImageEmbedInfo;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Enums;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Net.Http.Headers;
-using System.Text;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
@@ -24,27 +21,25 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
     {
         private readonly ILogger<SyncSubcriberService> _logger;
         public readonly IEnumerable<ILaneProcesscor> _laneProcesscor;
+        public readonly IImageService _imageService;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        private readonly IRabbitMQService _rabbitMQService;
+        private string _adminApiUrl, _imageApiUrl, _epayReportApiUrl;
         private readonly IMapper _mapper;
-        private string AdminApiUrl;
-        //private string epayReportApiHost = "http://10.10.74.67:8899/";
-        private string epayReportApiHost = "https://localhost:7007/";
 
         public SyncSubcriberService(ILogger<SyncSubcriberService> logger,
             IEnumerable<ILaneProcesscor> laneProcesscor,
-            HttpClient httpClient, IConfiguration configuration,
-            IRabbitMQService rabbitMQService,
-            IMapper mapper)
+            HttpClient httpClient, IConfiguration configuration, IImageService imageService, IMapper mapper)
         {
             _logger = logger;
             _laneProcesscor = laneProcesscor ?? throw new ArgumentNullException(nameof(laneProcesscor));
             _httpClient = httpClient;
             _configuration = configuration;
-            AdminApiUrl = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_ADMIN_API_BASE) ?? _configuration["AdminApiUrl"];
-            _rabbitMQService = rabbitMQService;
+            _adminApiUrl = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_ADMIN_API_BASE) ?? _configuration["AdminApiUrl"];
+            _imageApiUrl = Environment.GetEnvironmentVariable("AI_IMAGE_API_BASE_ENVIRONMENT") ?? _configuration["EmbedInfoImageApiUrl"];
+            _epayReportApiUrl = Environment.GetEnvironmentVariable("EPAY_REPORT_API_BASE_ENVIRONMENT") ?? _configuration["EpayReportApiUrl"];
             _mapper = mapper;
+            _imageService = imageService;
         }
 
         public async Task<bool> SyncSubcriber(string message, string msgType)
@@ -66,6 +61,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                     if (_laneService == null)
                     {
                         Console.WriteLine($"Message type {msgType} is not defined");
+                        _logger.LogError($"Message type {msgType} is not defined");
                         return false;
                     }
 
@@ -78,6 +74,23 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                                 laneIn = fee.LaneInVehicle;
                                 trans = await _laneService.ProcessAsync(fee, laneIn);
                                 epayReportTrans = await _laneService.ProcessEpayReportAsync(fee);
+                                //Get embed info image url
+                                //string url = $"{_imageApiUrl}Media/v1/embed-info";
+                                //vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.LaneOutImageEmbedInfoURL
+                                //    = await _imageService.GetUrlImageEmbedInfoUrl(_httpClient, url, new ImageEmbedInfoRequest
+                                //    {
+                                //        ReferenceId = feeModel.Payment.PaymentId,
+                                //        AirportId = "",
+                                //        TerminalId = "",
+                                //        LaneOutDateTime = vehicleLaneTransactionRequest.LaneOutTransaction.LaneOutDate,
+                                //        VehicleType = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.VehicleTypeId,
+                                //        PlateNumber = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.FrontPlateNumber,
+                                //        TicketType = vehicleLaneTransactionRequest.LaneOutTransaction.Payment.TicketType,
+                                //        Amount = (decimal)vehicleLaneTransactionRequest.LaneOutTransaction.Payment.ChargeAmount,
+                                //        RFID = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.RFID,
+                                //        ImageId = feeModel.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl,
+                                //    });
+
                             }
                             break;
                         case "In":
@@ -92,31 +105,20 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
                     // Sync data to BackOffice
                     if (trans != null)
-                    {
                         result = await SyncDataToBackOffice(trans, direction, result);
-                    }
                     else
-                    {
-                        string logMessage = $"Failed to run {nameof(SyncSubcriber)} method. Error: Transaction not found";
-                        Console.WriteLine(logMessage);
-                        _logger.LogError(logMessage);
-                    }
+                        _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: Transaction not found");
 
-                    // Publish message to Epay Report Queue
+                    // Sync data to Epay Report Queue
                     if (epayReportTrans != null)
-                    {
-                        //_rabbitMQService.PublishMessage(epayReportTrans, EpayReportPublisherTargetEnum.Transaction);
                         await SyncDataToEpayReportCenter(epayReportTrans);
-                    }
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
-                string logMessage = $"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}.\r\nStackTrace: {ex.StackTrace}";
-                Console.WriteLine(logMessage);
-                _logger.LogError(logMessage);
+                _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}.\r\nStackTrace: {ex.StackTrace}");
                 return result;
             }
         }
@@ -125,32 +127,27 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         {
             try
             {
-                string logMessage = "";
-                string url = $"{AdminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}";
-
-                var responseMessage = await PostData(url, JsonConvert.SerializeObject(trans));
+                string url = $"{_adminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}";
+                var responseMessage = await HttpClientUtil.PostData(_httpClient, url, JsonConvert.SerializeObject(trans));
                 if (responseMessage.IsSuccessStatusCode)
                 {
                     var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);
                     if (response.Succeeded)
                     {
                         result = true;
-                        logMessage = "Sync data success";
+                        Console.WriteLine("Sync data success");
                     }
                     else
-                        logMessage = $"Failed to run {nameof(SyncDataToBackOffice)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}";
+                        _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
                 }
                 else
-                    logMessage = $"Failed to run {nameof(SyncDataToBackOffice)} method. Error: {responseMessage.StatusCode}";
-
-                Console.WriteLine(logMessage);
-                _logger.LogError(logMessage);
+                    _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method. Error: {responseMessage.StatusCode}");
 
                 return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to run {nameof(SyncDataToBackOffice)} method. Error: {ex.Message}\r\n");
+                _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method. Error: {ex.Message}\r\n");
                 throw;
             }
         }
@@ -159,10 +156,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         {
             try
             {
-                string errMessage = "";
-                string url = $"{epayReportApiHost}api/v1/transactions";
-
-                var responseMessage = await PostData(url, JsonConvert.SerializeObject(trans));
+                string url = $"{_epayReportApiUrl}v1/transactions";
+                var responseMessage = await HttpClientUtil.PostData(_httpClient, url, JsonConvert.SerializeObject(trans));
                 if (responseMessage.IsSuccessStatusCode)
                 {
                     var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);
@@ -173,30 +168,15 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                         _logger.LogInformation(infoMessage);
                     }
                     else
-                        errMessage = $"Failed to run {nameof(SyncDataToEpayReportCenter)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}";
+                        _logger.LogError($"Failed to run {nameof(SyncDataToEpayReportCenter)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
                 }
                 else
-                    errMessage = $"Failed to run {nameof(SyncDataToEpayReportCenter)} method. Error: {responseMessage.StatusCode}";
-
-                Console.WriteLine(errMessage);
-                _logger.LogError(errMessage);
+                    _logger.LogError($"Failed to run {nameof(SyncDataToEpayReportCenter)} method. Error: {responseMessage.StatusCode}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to run {nameof(SyncDataToEpayReportCenter)} method. Error: {ex.Message}\r\n");
+                _logger.LogError($"Failed to run {nameof(SyncDataToEpayReportCenter)} method. Error: {ex.Message}\r\n. Stack trace: {ex.StackTrace}");
             }
-        }
-
-        private async Task<HttpResponseMessage> PostData(string url, string data)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
-            request.Headers.Accept.Clear();
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            request.Content = new StringContent(data, Encoding.UTF8, "application/json");
-
-            Console.WriteLine($"Admin API Request: {request.RequestUri}\r\n{data}\r\n");
-
-            return await _httpClient.SendAsync(request, CancellationToken.None);
         }
     }
 }

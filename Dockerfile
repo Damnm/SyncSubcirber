@@ -13,8 +13,11 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0
 # RUN apt-get update && apt-get -y install ca-certificates && update-ca-certificates
 RUN apt-get update && apt-get install -y vim
 RUN apt install -y grep mlocate
-WORKDIR /app
-# EXPOSE 80
-# EXPOSE 443
-COPY --from=build /artifacts .
+# Create a group and user
+RUN adduser --disabled-password --gecos "" -u 2024 epay
+WORKDIR /home/epay/app
+RUN chown -R epay /home/epay/app
+
+USER epay
+COPY --chown=epay:epay --from=build /artifacts .
 ENTRYPOINT ["dotnet", "EPAY.ETC.Core.Sync-Subcriber.dll"]
