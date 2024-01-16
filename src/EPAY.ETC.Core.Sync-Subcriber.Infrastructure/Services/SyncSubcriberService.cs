@@ -1,13 +1,10 @@
 ﻿using AutoMapper;
 using EPAY.ETC.Core.Models.Constants;
-using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Models.Fees;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Constants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.ImageEmbedInfo;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Enums;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
@@ -109,7 +106,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                     else
                         _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: Transaction not found");
 
-                    // Sync data to Epay Report Queue
+                    // Sync data to Epay Report Center
                     if (epayReportTrans != null)
                         await SyncDataToEpayReportCenter(epayReportTrans);
                 }
@@ -128,14 +125,18 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             try
             {
                 string url = $"{_adminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}";
-                var responseMessage = await HttpClientUtil.PostData(_httpClient, url, JsonConvert.SerializeObject(trans));
+                string data = JsonConvert.SerializeObject(trans);
+                Console.WriteLine($"BackOffice Sync Request Data:\r\n{data}\r\n");
+                _logger.LogInformation($"BackOffice Sync Request Data:\r\n{data}\r\n");
+
+                var responseMessage = await HttpClientUtil.PostData(_httpClient, url, data);
                 if (responseMessage.IsSuccessStatusCode)
                 {
                     var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);
                     if (response.Succeeded)
                     {
                         result = true;
-                        Console.WriteLine("Sync data to Back Office successfully");
+                        Console.WriteLine("Sync data to BackOffice successfully");
                     }
                     else
                         _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
@@ -157,7 +158,11 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             try
             {
                 string url = $"{_epayReportApiUrl}v1/transactions";
-                var responseMessage = await HttpClientUtil.PostData(_httpClient, url, JsonConvert.SerializeObject(trans));
+                string data = JsonConvert.SerializeObject(trans);
+                Console.WriteLine($"EpayReport Sync Request Data:\r\n{data}\r\n");
+                _logger.LogInformation($"EpayReport Sync Request Data:\r\n{data}\r\n");
+
+                var responseMessage = await HttpClientUtil.PostData(_httpClient, url, data);
                 if (responseMessage.IsSuccessStatusCode)
                 {
                     var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);

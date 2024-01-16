@@ -1,6 +1,6 @@
 ﻿using EPAY.ETC.Core.Models.Fees;
 using EPAY.ETC.Core.Models.Utils;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Constants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
@@ -29,10 +29,10 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             {
                 LaneInTransaction = new VehicleLaneInTransactionRequestModel()
                 {
-                    TransactionId = $"TRANS{laneIn.Epoch}",
+                    TransactionId = $"Trans{laneIn.Epoch}",
                     StationId = stationId,
                     LaneId = $"{stationId}{int.Parse(laneIn.LaneInId ?? "01"):D2}",
-                    ShiftId = laneIn.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName).Hour > 12 ? "030101" : "030102", // feeModel.ShiftId
+                    //ShiftId = laneIn.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName).Hour > 12 ? "030101" : "030102", // feeModel.ShiftId
                     LaneInDate = laneIn.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName),
                     TCPCheckPoint = string.Empty,
                     VehicleDetails = laneIn.VehicleInfo == null

@@ -2,7 +2,7 @@
 using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Models.Fees;
 using EPAY.ETC.Core.Models.Utils;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Constants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Enums;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
@@ -76,14 +76,15 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             // Airport transaction
             Guid paymentId = fee.Payment.PaymentId;
             var transaction = await _dbContext.PaymentStatuses
-            .Where(x => x.PaymentId == paymentId && x.Status == ETC.Core.Models.Enums.PaymentStatusEnum.Paid)
+            .Where(p => p.PaymentId == paymentId && p.Status == PaymentStatusEnum.Paid)
             .Include(p => p.Payment)
+                .ThenInclude(p => p.Fee)
             .Select(p => new VehicleLaneTransactionRequestModel
             {
                 LaneInTransaction = laneInVehicle == null ? null
                         : new VehicleLaneInTransactionRequestModel
                         {
-                            TransactionId = $"TRANS{laneInVehicle.Epoch}",
+                            TransactionId = $"Trans{laneInVehicle.Epoch}",
                             LaneInDate = laneInVehicle.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName)
                         },
                 LaneOutTransaction = new VehicleLaneOutTransactionRequestModel()
@@ -92,8 +93,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     StationId = _stationId,
                     LaneId = $"{_stationId}{int.Parse(fee.LaneOutVehicle.LaneOutId ?? "01"):D2}",
                     EmployeeId = fee.EmployeeId,
-                    LaneOutDate = p.Payment.Fee.LaneOutDate ?? DateTime.Now.ConvertToTimeZone(DateTimeKind.Local, Constant.AsianTimeZoneName),
-                    ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour < 12 ? "030101" : "030102",
+                    LaneOutDate = fee.LaneOutVehicle.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName),
+                    //ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour < 12 ? "030101" : "030102",
                     IsOCRSuccessful = !string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.PlateNumber) || !string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.RearPlateNumber),
                     VehicleDetails = new VehicleLaneOutDetailRequestModel
                     {
@@ -109,7 +110,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     Payment = new VehicleLaneOutPaymentRequestModel
                     {
                         PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null
-                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Contract.ToString() ? p.Payment.Fee.VehicleCategory.ExternalId : null),
+                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Contract ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                         ChargeAmount = (int?)fee.Payment.Amount,
                         DurationTime = (int)Math.Ceiling((decimal)fee.Payment.Duration / 60),
                         TicketId = fee.Payment.TicketId,
@@ -117,7 +118,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         UseTcpParking = fee.Parking != null,
                         IsNonCash = false,
                         ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null
-                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Priority.ToString() ? p.Payment.Fee.VehicleCategory.ExternalId : null),
+                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Priority ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                         PaymentMethod = p.PaymentMethod,
                         IsManual = fee.LaneOutVehicle.IsManual,
                     },
@@ -154,8 +155,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                 if (result != null)
                 {
                     result.Fee.AirportId = _airPortId;
-                    result.Fee.AirportName = _airPortName;
-
+                    result.Fee.AirportName = $"{_airPortName}";
                     result.Fee.LaneInPlateNumberPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.PlateNumberPhotoUrl;
                     result.Fee.LaneInVehiclePhotoUrl = fee.LaneInVehicle?.VehicleInfo?.VehiclePhotoUrl;
                     result.Fee.LaneInPlateNumberRearPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.PlateNumberRearPhotoUrl;

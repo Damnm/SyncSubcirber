@@ -1,4 +1,4 @@
-﻿namespace EPAY.ETC.Core.Sync_Subcriber.Core.Constrants
+﻿namespace EPAY.ETC.Core.Sync_Subcriber.Core.Constants
 {
     public static class Constant
     {
