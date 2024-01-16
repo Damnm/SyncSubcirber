@@ -65,21 +65,21 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                                 laneInModel = feeModel.LaneInVehicle;
                                 vehicleLaneTransactionRequest = await _laneService.ProcessAsync(feeModel, laneInModel);
                                 //Get embed info image url
-                                //string url = $"{_imageApiUrl}Media/v1/embed-info";
-                                //vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.LaneOutImageEmbedInfoURL
-                                //    = await _imageService.GetUrlImageEmbedInfoUrl(_httpClient, url, new ImageEmbedInfoRequest
-                                //    {
-                                //        ReferenceId = feeModel.Payment.PaymentId,
-                                //        AirportId = "",
-                                //        TerminalId = "",
-                                //        LaneOutDateTime = vehicleLaneTransactionRequest.LaneOutTransaction.LaneOutDate,
-                                //        VehicleType = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.VehicleTypeId,
-                                //        PlateNumber = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.FrontPlateNumber,
-                                //        TicketType = vehicleLaneTransactionRequest.LaneOutTransaction.Payment.TicketType,
-                                //        Amount = (decimal)vehicleLaneTransactionRequest.LaneOutTransaction.Payment.ChargeAmount,
-                                //        RFID = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.RFID,
-                                //        ImageId = feeModel.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl,
-                                //    });
+                                string url = $"{_imageApiUrl}Media/v1/embed-info";
+                                vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.LaneOutImageEmbedInfoURL
+                                    = await _imageService.GetUrlImageEmbedInfoUrl(_httpClient, url, new ImageEmbedInfoRequest
+                                    {
+                                        ReferenceId = feeModel.Payment.PaymentId,
+                                        AirportId = feeModel.AirportId,
+                                        TerminalId = feeModel.TerminalId,
+                                        LaneOutDateTime = vehicleLaneTransactionRequest.LaneOutTransaction.LaneOutDate,
+                                        VehicleType = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.VehicleTypeId,
+                                        PlateNumber = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.FrontPlateNumber,
+                                        TicketType = vehicleLaneTransactionRequest.LaneOutTransaction.Payment.TicketType,
+                                        Amount = (decimal)vehicleLaneTransactionRequest.LaneOutTransaction.Payment.ChargeAmount,
+                                        RFID = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.RFID,
+                                        ImageId = feeModel.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl,
+                                    });
                             }
                             break;
                         case "In":
