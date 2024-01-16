@@ -29,9 +29,13 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
         [MaxLength(50)]
         public string? PlateColour { get; set; }
         public Guid? CustomVehicleTypeId { get; set; }
+        [ForeignKey("CustomVehicleTypeId")]
+        public virtual CustomVehicleTypeModel? CustomVehicleType { get; set; }
         public int? Seat { get; set; }
         public int? Weight { get; set; }
+        [MaxLength(255)]
         public string? LaneInPlateNumberPhotoUrl { get; set; }
+        [MaxLength(255)]
         public string? LaneInVehiclePhotoUrl { get; set; }
         [MaxLength(255)]
         public string? LaneOutPlateNumberPhotoUrl { get; set; }
@@ -40,16 +44,21 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities
         public float? ConfidenceScore { get; set; }
         public double Amount { get; set; }
         public Guid? VehicleCategoryId { get; set; }
-        [ForeignKey(nameof(VehicleCategoryId))]
+        [ForeignKey("VehicleCategoryId")]
         public virtual VehicleCategoryModel? VehicleCategory { get; set; }
         [MaxLength(50)]
-        public string? TicketTypeId { get; set; }
-        [MaxLength(50)]
         public string? TicketId { get; set; }
+        [MaxLength(50)]
         public string? ShiftId { get; set; }
         [MaxLength(20)]
         public string? EmployeeId { get; set; }
 
+        public Guid? TicketTypeId { get; set; }
+        [ForeignKey("TicketTypeId")]
+        public virtual TicketTypeModel? TicketType { get; set; }
+
         public virtual ICollection<PaymentModel> Payments { get; set; }
+        public virtual ICollection<ParkingLogModel> ParkingLogs { get; set; }
+        public int Block { get; set; }
     }
 }

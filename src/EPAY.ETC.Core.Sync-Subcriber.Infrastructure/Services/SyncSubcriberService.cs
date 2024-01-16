@@ -1,10 +1,10 @@
-﻿using EPAY.ETC.Core.Models.Constants;
+﻿using AutoMapper;
+using EPAY.ETC.Core.Models.Constants;
 using EPAY.ETC.Core.Models.Fees;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Constants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.ImageEmbedInfo;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
@@ -21,10 +21,12 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         public readonly IImageService _imageService;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        private string _adminApiUrl, _imageApiUrl;
+        private string _adminApiUrl, _imageApiUrl, _epayReportApiUrl;
+        private readonly IMapper _mapper;
+
         public SyncSubcriberService(ILogger<SyncSubcriberService> logger,
             IEnumerable<ILaneProcesscor> laneProcesscor,
-            HttpClient httpClient, IConfiguration configuration, IImageService imageService)
+            HttpClient httpClient, IConfiguration configuration, IImageService imageService, IMapper mapper)
         {
             _logger = logger;
             _laneProcesscor = laneProcesscor ?? throw new ArgumentNullException(nameof(laneProcesscor));
@@ -32,6 +34,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             _configuration = configuration;
             _adminApiUrl = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_ADMIN_API_BASE) ?? _configuration["AdminApiUrl"];
             _imageApiUrl = Environment.GetEnvironmentVariable("AI_IMAGE_API_BASE_ENVIRONMENT") ?? _configuration["EmbedInfoImageApiUrl"];
+            _epayReportApiUrl = Environment.GetEnvironmentVariable("EPAY_REPORT_API_BASE_ENVIRONMENT") ?? _configuration["EpayReportApiUrl"];
+            _mapper = mapper;
             _imageService = imageService;
         }
 
@@ -45,25 +49,28 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             {
                 if (!string.IsNullOrEmpty(msgType) && (msgType == Constant.MsgTypeOut || msgType == Constant.MsgTypeIn))
                 {
-                    FeeModel? feeModel = null;
-                    LaneInVehicleModel? laneInModel = null;
-                    VehicleLaneTransactionRequestModel vehicleLaneTransactionRequest = null;
+                    FeeModel? fee = null;
+                    LaneInVehicleModel? laneIn = null;
+                    VehicleLaneTransactionRequestModel? trans = null;
+                    EpayReportTransactionModel? epayReportTrans = null;
 
                     var _laneService = _laneProcesscor.FirstOrDefault(x => x.IsSupported(msgType));
                     if (_laneService == null)
                     {
-                        Console.WriteLine($": Message type {msgType} is not defined");
+                        Console.WriteLine($"Message type {msgType} is not defined");
+                        _logger.LogError($"Message type {msgType} is not defined");
                         return false;
                     }
 
                     switch (msgType)
                     {
                         case "Fees":
-                            feeModel = JsonConvert.DeserializeObject<FeeModel>(message);
-                            if (feeModel != null && feeModel.Payment != null)
+                            fee = JsonConvert.DeserializeObject<FeeModel>(message);
+                            if (fee != null && fee.Payment != null)
                             {
-                                laneInModel = feeModel.LaneInVehicle;
-                                vehicleLaneTransactionRequest = await _laneService.ProcessAsync(feeModel, laneInModel);
+                                laneIn = fee.LaneInVehicle;
+                                trans = await _laneService.ProcessAsync(fee, laneIn);
+                                epayReportTrans = await _laneService.ProcessEpayReportAsync(fee);
                                 //Get embed info image url
                                 //string url = $"{_imageApiUrl}Media/v1/embed-info";
                                 //vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.LaneOutImageEmbedInfoURL
@@ -80,57 +87,100 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                                 //        RFID = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.RFID,
                                 //        ImageId = feeModel.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl,
                                 //    });
+
                             }
                             break;
                         case "In":
-                            laneInModel = JsonConvert.DeserializeObject<LaneInVehicleModel>(message);
-                            if (laneInModel != null)
+                            laneIn = JsonConvert.DeserializeObject<LaneInVehicleModel>(message);
+                            if (laneIn != null)
                             {
-                                vehicleLaneTransactionRequest = await _laneService.ProcessAsync(null, laneInModel);
+                                trans = await _laneService.ProcessAsync(null, laneIn);
                             }
                             break;
                         default: break;
                     }
 
-                    if (vehicleLaneTransactionRequest != null)
-                    {
-                        string url = $"{_adminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}";
-                        var responseMessage = await HttpClientUtil.PostData(_httpClient, url, JsonConvert.SerializeObject(vehicleLaneTransactionRequest));
-                        if (responseMessage.IsSuccessStatusCode)
-                        {
-                            var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);
-                            if (response.Succeeded)
-                            {
-                                result = true;
-                                string logMessage = "Sync data success";
-                                _logger.LogInformation(logMessage);
-                            }
-                            else
-                            {
-                                string logMessage = $"Failed to sync data {nameof(SyncSubcriber)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}";
-                                _logger.LogError(logMessage);
-                            }
-                        }
-                        else
-                        {
-                            string logMessage = $"Failed to sync data to Admin API {nameof(SyncSubcriber)} method. Error: {responseMessage.StatusCode}";
-                            _logger.LogError(logMessage);
-                        }
-                    }
+                    // Sync data to BackOffice
+                    if (trans != null)
+                        result = await SyncDataToBackOffice(trans, direction, result);
                     else
-                    {
-                        string logMessage = $"Failed to run {nameof(SyncSubcriber)} method. Error: transaction not found";
-                        _logger.LogError(logMessage);
-                    }
+                        _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: Transaction not found");
+
+                    // Sync data to Epay Report Center
+                    if (epayReportTrans != null)
+                        await SyncDataToEpayReportCenter(epayReportTrans);
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
-                string logMessage = $"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}";
-                _logger.LogError(logMessage);
+                _logger.LogError($"Failed to run {nameof(SyncSubcriber)} method. Error: {ex.Message}.\r\nStackTrace: {ex.StackTrace}");
                 return result;
+            }
+        }
+
+        private async Task<bool> SyncDataToBackOffice(VehicleLaneTransactionRequestModel trans, string direction, bool result)
+        {
+            try
+            {
+                string url = $"{_adminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}";
+                string data = JsonConvert.SerializeObject(trans);
+                Console.WriteLine($"BackOffice Sync Request Data:\r\n{data}\r\n");
+                _logger.LogInformation($"BackOffice Sync Request Data:\r\n{data}\r\n");
+
+                var responseMessage = await HttpClientUtil.PostData(_httpClient, url, data);
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);
+                    if (response.Succeeded)
+                    {
+                        result = true;
+                        Console.WriteLine("Sync data to BackOffice successfully");
+                    }
+                    else
+                        _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
+                }
+                else
+                    _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method. Error: {responseMessage.StatusCode}");
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method. Error: {ex.Message}\r\n");
+                throw;
+            }
+        }
+
+        private async Task SyncDataToEpayReportCenter(EpayReportTransactionModel trans)
+        {
+            try
+            {
+                string url = $"{_epayReportApiUrl}v1/transactions";
+                string data = JsonConvert.SerializeObject(trans);
+                Console.WriteLine($"EpayReport Sync Request Data:\r\n{data}\r\n");
+                _logger.LogInformation($"EpayReport Sync Request Data:\r\n{data}\r\n");
+
+                var responseMessage = await HttpClientUtil.PostData(_httpClient, url, data);
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    var response = await HttpsExtensions.ReturnApiResponse<HttpResponseBase>(responseMessage);
+                    if (response.Succeeded)
+                    {
+                        string infoMessage = "Sync data to Epay Report successfully";
+                        Console.WriteLine(infoMessage);
+                        _logger.LogInformation(infoMessage);
+                    }
+                    else
+                        _logger.LogError($"Failed to run {nameof(SyncDataToEpayReportCenter)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
+                }
+                else
+                    _logger.LogError($"Failed to run {nameof(SyncDataToEpayReportCenter)} method. Error: {responseMessage.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to run {nameof(SyncDataToEpayReportCenter)} method. Error: {ex.Message}\r\n. Stack trace: {ex.StackTrace}");
             }
         }
     }

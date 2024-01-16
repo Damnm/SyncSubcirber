@@ -1,6 +1,6 @@
 ﻿using EPAY.ETC.Core.Models.Constants;
 using EPAY.ETC.Core.Models.Fees;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Constrants;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Constants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;

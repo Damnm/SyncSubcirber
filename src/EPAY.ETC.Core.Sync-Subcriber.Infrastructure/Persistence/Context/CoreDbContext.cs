@@ -1,4 +1,6 @@
-﻿using EPAY.ETC.Core.Models.Enums;
+﻿using EPAY.ETC.Core.Models.Constants;
+using EPAY.ETC.Core.Models.Enums;
+using EPAY.ETC.Core.Models.Utils;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -17,7 +19,10 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
         public virtual DbSet<FeeModel> Fees { get; set; }
         public virtual DbSet<PaymentStatusModel> PaymentStatuses { get; set; }
         public virtual DbSet<PaymentModel> Payments { get; set; }
-        //public virtual DbSet<VehicleCategoryModel> VehicleCategories { get; set; }
+        public virtual DbSet<ETCCheckoutModel> ETCCheckOuts { get; set; }
+        public virtual DbSet<ParkingLogModel> ParkingLogs { get; set; }
+        public virtual DbSet<CustomVehicleTypeModel> CustomVehicleTypes { get; set; }
+        public virtual DbSet<VehicleCategoryModel> VehicleCategories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -68,9 +73,56 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context
                 .HasForeignKey(x => x.FeeId);
             #endregion
 
-            //#region Vehicle category configuration
-            //modelBuilder.Entity<VehicleCategoryModel>().HasKey(x => x.Id);
-            //#endregion
+            #region ETCCheckout configuration
+            modelBuilder.Entity<ETCCheckoutModel>().HasKey(x => x.Id);
+            modelBuilder.Entity<ETCCheckoutModel>()
+                .HasOne(x => x.Payment)
+                .WithMany(x => x.ETCCheckOuts)
+                .HasForeignKey(x => x.PaymentId);
+            modelBuilder.Entity<ETCCheckoutModel>().HasIndex(x => x.PaymentId);
+            modelBuilder.Entity<ETCCheckoutModel>().HasIndex(x => x.TransactionId);
+            modelBuilder.Entity<ETCCheckoutModel>().HasIndex("TransactionId", "RFID", "PlateNumber");
+            modelBuilder.Entity<ETCCheckoutModel>()
+               .Property(x => x.ServiceProvider)
+               .HasMaxLength(50)
+               .HasConversion(new EnumToStringConverter<ETCServiceProviderEnum>());
+            modelBuilder.Entity<ETCCheckoutModel>()
+               .Property(x => x.TransactionStatus)
+               .HasMaxLength(50)
+               .HasConversion(new EnumToStringConverter<TransactionStatusEnum>());
+            #endregion
+
+            #region Parking log configuration
+            modelBuilder.Entity<ParkingLogModel>().HasKey(x => x.Id);
+            modelBuilder.Entity<ParkingLogModel>()
+           .Property(x => x.PaidStatus)
+           .HasMaxLength(50)
+           .HasConversion(new EnumToStringConverter<PaidStatusEnum>());
+            modelBuilder.Entity<ParkingLogModel>()
+                .HasOne(x => x.Fee)
+                .WithMany(x => x.ParkingLogs)
+                .HasForeignKey(x => x.FeeId);
+            #endregion
+
+            #region Ticket type
+            modelBuilder.Entity<TicketTypeModel>().HasKey(x => x.Id);
+            #endregion
+
+            #region Custom vehicle type configuration
+            modelBuilder.Entity<CustomVehicleTypeModel>().HasKey(x => x.Id);
+            modelBuilder.Entity<CustomVehicleTypeModel>()
+                .Property(x => x.Name)
+                .HasMaxLength(50)
+                .HasConversion(new EnumToStringConverter<CustomVehicleTypeEnum>());
+            #endregion
+
+            #region Vehicle category configuration
+            modelBuilder.Entity<VehicleCategoryModel>().HasKey(x => x.Id);
+            modelBuilder.Entity<VehicleCategoryModel>()
+                .Property(x => x.VehicleCategoryType)
+                .HasMaxLength(20)
+                .HasConversion(new EnumToStringConverter<VehicleCategoryTypeEnum>());
+            #endregion
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
