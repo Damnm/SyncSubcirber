@@ -77,8 +77,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                                 //    = await _imageService.GetUrlImageEmbedInfoUrl(_httpClient, url, new ImageEmbedInfoRequest
                                 //    {
                                 //        ReferenceId = feeModel.Payment.PaymentId,
-                                //        AirportId = "",
-                                //        TerminalId = "",
+                                //        AirportId = feeModel.AirportId,
+                                //        TerminalId = feeModel.TerminalId,
                                 //        LaneOutDateTime = vehicleLaneTransactionRequest.LaneOutTransaction.LaneOutDate,
                                 //        VehicleType = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.VehicleTypeId,
                                 //        PlateNumber = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.FrontPlateNumber,
