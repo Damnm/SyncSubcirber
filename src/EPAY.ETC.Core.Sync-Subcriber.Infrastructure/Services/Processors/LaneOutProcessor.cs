@@ -94,7 +94,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     LaneId = $"{_stationId}{int.Parse(fee.LaneOutVehicle.LaneOutId ?? "01"):D2}",
                     EmployeeId = fee.EmployeeId,
                     LaneOutDate = fee.LaneOutVehicle.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName),
-                    //ShiftId = p.Payment.Fee.LaneOutDate.Value.Hour < 12 ? "030101" : "030102",
+                    ShiftId = "030101",
                     IsOCRSuccessful = !string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.PlateNumber) || !string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.RearPlateNumber),
                     VehicleDetails = new VehicleLaneOutDetailRequestModel
                     {
@@ -143,6 +143,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         .ThenInclude(p => p.ETCCheckOuts)
                     .Include(f => f.CustomVehicleType)
                     .Include(f => f.VehicleCategory)
+                    .Include(f => f.TicketType)
                     .Include(f => f.ParkingLogs)
                     .Select(f => new EpayReportTransactionModel()
                     {

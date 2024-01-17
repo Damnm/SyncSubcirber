@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Publisher.Common.Options;
 using EPAY.ETC.Core.Publisher.Interface;
 using EPAY.ETC.Core.RabbitMQ.Common.Events;
@@ -8,12 +7,7 @@ using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Enums;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {

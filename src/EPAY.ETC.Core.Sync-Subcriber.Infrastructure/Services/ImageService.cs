@@ -1,19 +1,10 @@
-﻿using EPAY.ETC.Core.Models.Constants;
-using EPAY.ETC.Core.Models.Fees;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Constants;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
+﻿using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.ImageEmbedInfo;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {

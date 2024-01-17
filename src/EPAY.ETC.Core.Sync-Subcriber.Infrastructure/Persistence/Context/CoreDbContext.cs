@@ -1,6 +1,4 @@
-﻿using EPAY.ETC.Core.Models.Constants;
-using EPAY.ETC.Core.Models.Enums;
-using EPAY.ETC.Core.Models.Utils;
+﻿using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
