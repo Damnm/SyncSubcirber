@@ -3,6 +3,7 @@ using EPAY.ETC.Core.Models.Enums;
 using EPAY.ETC.Core.Models.Fees;
 using EPAY.ETC.Core.Models.Utils;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Constants;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Enums;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
@@ -101,6 +102,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         RFID = fee.Payment.RFID,
                         VehicleTypeId = p.Payment.CustomVehicleType == null ? null
                                 : p.Payment.CustomVehicleType.ExternalId.Substring(p.Payment.CustomVehicleType.ExternalId.Length - 2),
+                        VehicleTypeName = p.Payment.CustomVehicleType == null ? null : p.Payment.CustomVehicleType.Desc,
                         FrontPlateColour = string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.PlateColour) ? fee.LaneOutVehicle.VehicleInfo.RearPlateColour : fee.LaneOutVehicle.VehicleInfo.PlateColour,
                         FrontPlateNumber = string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.PlateNumber) ? fee.LaneOutVehicle.VehicleInfo.RearPlateNumber : fee.LaneOutVehicle.VehicleInfo.PlateNumber,
                         FrontImage = string.IsNullOrEmpty(fee.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl) ? fee.LaneOutVehicle.VehicleInfo.VehicleRearPhotoUrl : fee.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl,
@@ -109,16 +111,17 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     },
                     Payment = new VehicleLaneOutPaymentRequestModel
                     {
+                        TicketType = fee.Payment.TicketType, //
                         PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null
                                 : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Contract ? p.Payment.Fee.VehicleCategory.ExternalId : null),
+                        ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null
+                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Priority ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                         ChargeAmount = (int?)fee.Payment.Amount,
                         DurationTime = (int)Math.Ceiling((decimal)fee.Payment.Duration / 60),
                         TicketId = fee.Payment.TicketId,
                         eTicket = null,
                         UseTcpParking = fee.Parking != null,
                         IsNonCash = false,
-                        ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null
-                                : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Priority ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                         PaymentMethod = p.PaymentMethod,
                         IsManual = fee.LaneOutVehicle.IsManual,
                     },
@@ -161,6 +164,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     result.Fee.LaneInVehiclePhotoUrl = fee.LaneInVehicle?.VehicleInfo?.VehiclePhotoUrl;
                     result.Fee.LaneInPlateNumberRearPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.PlateNumberRearPhotoUrl;
                     result.Fee.LaneInVehicleRearPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.VehicleRearPhotoUrl;
+                    result.Fee.VehicleChargeType = fee.LaneOutVehicle.VehicleChargeType.ToString();
+                    result.Fee.VehicleChargeTypeName = fee.LaneOutVehicle.VehicleChargeType.GetDescription();
                 }
 
                 return result;

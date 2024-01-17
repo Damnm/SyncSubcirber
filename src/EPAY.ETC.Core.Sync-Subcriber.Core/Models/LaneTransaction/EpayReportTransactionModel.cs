@@ -53,6 +53,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         public string? ExternalEmployeeId { get; set; }
         public string? ExternalEmployeeName { get; set; }
         public int BlockNumber { get; set; }
+        public string? VehicleChargeType { get; set; }
+        public string? VehicleChargeTypeName { get; set; }
     }
 
     public class EpayReportPaymentModel

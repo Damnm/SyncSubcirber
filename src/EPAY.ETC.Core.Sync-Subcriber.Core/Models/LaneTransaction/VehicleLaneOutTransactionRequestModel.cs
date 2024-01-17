@@ -52,6 +52,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         public string? RFID { set; get; }
         [MaxLength(6)]
         public string? VehicleTypeId { set; get; }
+        public string? VehicleTypeName { set; get; }
         [MaxLength(50)]
         public string? FrontPlateColour { set; get; }
         [MaxLength(15)]

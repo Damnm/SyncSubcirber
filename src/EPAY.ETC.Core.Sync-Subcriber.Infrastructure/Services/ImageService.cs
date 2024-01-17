@@ -5,6 +5,8 @@ using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System;
+using System.Diagnostics;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
@@ -23,32 +25,44 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 
             try
             {
-                var responseMessage = await HttpClientUtil.PostData(_httpClient, $"{apiUrl}Media/v1/embed-info", JsonConvert.SerializeObject(request));
+                string requestData = JsonConvert.SerializeObject(request);
+                _logger.LogInformation($"GetUrlImageEmbedInfoUrl Request: {apiUrl}\r\n{requestData}\r\n");
+                var responseMessage = await HttpClientUtil.PostData(_httpClient, $"{apiUrl}", requestData);
 
+                _logger.LogInformation($"GetUrlImageEmbedInfoUrl Response: {responseMessage}");
                 if (responseMessage.IsSuccessStatusCode)
                 {
                     var response = await HttpsExtensions.ReturnApiResponse<EmbedInfoResponse>(responseMessage);
                     if (response.Succeeded)
                     {
                         result = response.Data?.PhotoUrl;
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine($":GetUrlImageEmbedInfoUrl PhotoUrl: { result}");
+                        Console.ResetColor();
                     }
                     else
                     {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Error. Get embed info image failed");
+                        Console.ResetColor();
                         string logMessage = $"Failed to {nameof(GetUrlImageEmbedInfoUrl)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}";
                         _logger.LogError(logMessage);
                     }
                 }
                 else
                 {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Error. Get embed info image failed");
+                    Console.ResetColor();
                     string logMessage = $"Failed to {nameof(GetUrlImageEmbedInfoUrl)} method. Error: {responseMessage.StatusCode}";
                     _logger.LogError(logMessage);
                 }
-
 
                 return result;
             }
             catch (Exception ex)
             {
+                Console.WriteLine("Error. Get embed info image failed");
                 _logger.LogError($"Failed to run {nameof(GetUrlImageEmbedInfoUrl)} method. Error: {ex.Message}");
                 return result;
             }

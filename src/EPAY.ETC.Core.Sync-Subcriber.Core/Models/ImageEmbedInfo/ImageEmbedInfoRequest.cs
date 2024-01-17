@@ -5,6 +5,7 @@
         public Guid ReferenceId { get; set; }
         public string AirportId { get; set; } = string.Empty;
         public string TerminalId { get; set; } = string.Empty;
+        public string LaneOutId { get; set; } = string.Empty;
         public DateTime LaneOutDateTime { get; set; }
         public string VehicleType { get; set; } = string.Empty;
         public string PlateNumber { get; set; } = string.Empty;

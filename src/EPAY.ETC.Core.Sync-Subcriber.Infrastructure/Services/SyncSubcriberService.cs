@@ -5,6 +5,7 @@ using EPAY.ETC.Core.Sync_Subcriber.Core.Constants;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Models.ImageEmbedInfo;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
@@ -71,23 +72,27 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                                 laneIn = fee.LaneInVehicle;
                                 trans = await _laneService.ProcessAsync(fee, laneIn);
                                 epayReportTrans = await _laneService.ProcessEpayReportAsync(fee);
-                                //Get embed info image url
-                                //string url = $"{_imageApiUrl}Media/v1/embed-info";
-                                //vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.LaneOutImageEmbedInfoURL
-                                //    = await _imageService.GetUrlImageEmbedInfoUrl(_httpClient, url, new ImageEmbedInfoRequest
-                                //    {
-                                //        ReferenceId = feeModel.Payment.PaymentId,
-                                //        AirportId = feeModel.AirportId,
-                                //        TerminalId = feeModel.TerminalId,
-                                //        LaneOutDateTime = vehicleLaneTransactionRequest.LaneOutTransaction.LaneOutDate,
-                                //        VehicleType = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.VehicleTypeId,
-                                //        PlateNumber = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.FrontPlateNumber,
-                                //        TicketType = vehicleLaneTransactionRequest.LaneOutTransaction.Payment.TicketType,
-                                //        Amount = (decimal)vehicleLaneTransactionRequest.LaneOutTransaction.Payment.ChargeAmount,
-                                //        RFID = vehicleLaneTransactionRequest.LaneOutTransaction.VehicleDetails.RFID,
-                                //        ImageId = feeModel.LaneOutVehicle.VehicleInfo.VehiclePhotoUrl,
-                                //    });
 
+                                if (trans != null && trans.LaneOutTransaction != null)
+                                {
+                                    //Get embed info image url
+                                    string url = $"{_imageApiUrl}Media/v1/embed-info";
+                                    trans.LaneOutTransaction.VehicleDetails.LaneOutImageEmbedInfoURL
+                                        = await _imageService.GetUrlImageEmbedInfoUrl(_httpClient, url, new ImageEmbedInfoRequest
+                                        {
+                                            ReferenceId = fee.Payment.PaymentId,
+                                            AirportId = fee.AirportId,
+                                            TerminalId = fee.TerminalId,
+                                            LaneOutId = trans.LaneOutTransaction.LaneId,
+                                            LaneOutDateTime = trans.LaneOutTransaction.LaneOutDate,
+                                            VehicleType = trans.LaneOutTransaction.VehicleDetails?.VehicleTypeName,
+                                            PlateNumber = trans.LaneOutTransaction.VehicleDetails?.FrontPlateNumber,
+                                            TicketType = trans.LaneOutTransaction.Payment?.TicketType,
+                                            Amount = (decimal)trans.LaneOutTransaction.Payment?.ChargeAmount,
+                                            RFID = trans.LaneOutTransaction.VehicleDetails?.RFID,
+                                            ImageId = trans.LaneOutTransaction.VehicleDetails?.FrontImage
+                                        });
+                                }
                             }
                             break;
                         case "In":
@@ -126,8 +131,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             {
                 string url = $"{_adminApiUrl}LaneTransaction/Stations/{_configuration["StationId"]}/v1/lanes/{direction}";
                 string data = JsonConvert.SerializeObject(trans);
-                Console.WriteLine($"BackOffice Sync Request Data:\r\n{data}\r\n");
-                _logger.LogInformation($"BackOffice Sync Request Data:\r\n{data}\r\n");
+                Console.WriteLine($"BackOffice Sync Request: {url}\r\n{data}\r\n");
+                _logger.LogInformation($"BackOffice Sync Request: {url}\r\n{data}\r\n");
 
                 var responseMessage = await HttpClientUtil.PostData(_httpClient, url, data);
                 if (responseMessage.IsSuccessStatusCode)
@@ -136,10 +141,18 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                     if (response.Succeeded)
                     {
                         result = true;
+                        Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("Sync data to BackOffice successfully");
+                        Console.ResetColor();
+                        _logger.LogInformation("Sync data to BackOffice successfully");
                     }
                     else
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Error. Sync data to BackOffice failed");
+                        Console.ResetColor();
                         _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
+                    }    
                 }
                 else
                     _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method. Error: {responseMessage.StatusCode}");
