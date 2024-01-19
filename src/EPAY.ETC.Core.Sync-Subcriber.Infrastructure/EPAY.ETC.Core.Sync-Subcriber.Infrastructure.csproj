@@ -11,7 +11,7 @@
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="12.0.1" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-    <PackageReference Include="EPAY.ETC.Core.Models" Version="2024.1.16.1317" />
+    <PackageReference Include="EPAY.ETC.Core.Models" Version="2024.1.19.855" />
     <PackageReference Include="EPAY.ETC.Core.Publisher" Version="2024.1.11.1109" />
     <PackageReference Include="Epay.ETC.Core.Subscriber" Version="2024.1.11.1107" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.25" />

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#thanhpmelb
 image="thanhpmelb/epay.etc.core.sync-subscriber"
 
 #get timestamp for the tag  

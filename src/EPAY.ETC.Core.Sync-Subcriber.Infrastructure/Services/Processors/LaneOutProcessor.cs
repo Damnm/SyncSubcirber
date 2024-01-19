@@ -21,8 +21,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         private readonly CoreDbContext _dbContext;
         private readonly IConfiguration _configuration;
         private string _stationId = string.Empty;
-        private string _airPortId = string.Empty;
-        private string _airPortName = string.Empty;
         public LaneOutProcessor(ILogger<LaneOutProcessor> logger,
              IMapper mapper, IConfiguration configuration, CoreDbContext dbContext)
         {
@@ -31,8 +29,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             _dbContext = dbContext;
             _configuration = configuration;
             _stationId = _configuration["StationId"];
-            _airPortId = _configuration["AirportId"];
-            _airPortName = _configuration["AirportName"];
         }
 
         public bool IsSupported(string msgType)
@@ -111,7 +107,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     },
                     Payment = new VehicleLaneOutPaymentRequestModel
                     {
-                        TicketType = fee.Payment.TicketType, //
+                        TicketType = fee.Payment.TicketType,
                         PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null
                                 : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Contract ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                         ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null
@@ -158,14 +154,14 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
 
                 if (result != null)
                 {
-                    result.Fee.AirportId = _airPortId;
-                    result.Fee.AirportName = $"{_airPortName}";
+                    result.Fee.AirportId = fee.AirportId;
+                    result.Fee.AirportName = fee.AirportName;
                     result.Fee.LaneInPlateNumberPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.PlateNumberPhotoUrl;
                     result.Fee.LaneInVehiclePhotoUrl = fee.LaneInVehicle?.VehicleInfo?.VehiclePhotoUrl;
                     result.Fee.LaneInPlateNumberRearPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.PlateNumberRearPhotoUrl;
                     result.Fee.LaneInVehicleRearPhotoUrl = fee.LaneInVehicle?.VehicleInfo?.VehicleRearPhotoUrl;
                     result.Fee.VehicleChargeType = fee.LaneOutVehicle.VehicleChargeType.ToString();
-                    result.Fee.VehicleChargeTypeName = fee.LaneOutVehicle.VehicleChargeType.GetDescription();
+                    result.Fee.VehicleChargeTypeName = fee.LaneOutVehicle.VehicleChargeType.ToEnumMemberAttrValue();
                 }
 
                 return result;

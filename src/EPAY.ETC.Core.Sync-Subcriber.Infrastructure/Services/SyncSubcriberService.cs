@@ -83,7 +83,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                                             ReferenceId = fee.Payment.PaymentId,
                                             AirportId = fee.AirportId,
                                             TerminalId = fee.TerminalId,
-                                            LaneOutId = trans.LaneOutTransaction.LaneId,
+                                            LaneOutId = fee.LaneOutVehicle.LaneOutId,
                                             LaneOutDateTime = trans.LaneOutTransaction.LaneOutDate,
                                             VehicleType = trans.LaneOutTransaction.VehicleDetails?.VehicleTypeName,
                                             PlateNumber = trans.LaneOutTransaction.VehicleDetails?.FrontPlateNumber,
@@ -172,8 +172,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             {
                 string url = $"{_epayReportApiUrl}v1/transactions";
                 string data = JsonConvert.SerializeObject(trans);
-                Console.WriteLine($"EpayReport Sync Request Data:\r\n{data}\r\n");
-                _logger.LogInformation($"EpayReport Sync Request Data:\r\n{data}\r\n");
+                Console.WriteLine($"EpayReport Sync Request: {url}\r\n{data}\r\n");
+                _logger.LogInformation($"EpayReport Sync Request: {url}\r\n{data}\r\n");
 
                 var responseMessage = await HttpClientUtil.PostData(_httpClient, url, data);
                 if (responseMessage.IsSuccessStatusCode)

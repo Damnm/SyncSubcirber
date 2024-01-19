@@ -5,8 +5,6 @@ using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Diagnostics;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
 {
@@ -18,27 +16,23 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             _logger = logger;
         }
 
-        public async Task<string> GetUrlImageEmbedInfoUrl(HttpClient _httpClient, string apiUrl, ImageEmbedInfoRequest request)
+        public async Task<string?> GetUrlImageEmbedInfoUrl(HttpClient _httpClient, string apiUrl, ImageEmbedInfoRequest request)
         {
             _logger.LogInformation($"Executing {nameof(GetUrlImageEmbedInfoUrl)} method...");
             string result = string.Empty;
-
             try
             {
                 string requestData = JsonConvert.SerializeObject(request);
-                _logger.LogInformation($"GetUrlImageEmbedInfoUrl Request: {apiUrl}\r\n{requestData}\r\n");
+                _logger.LogInformation($"{nameof(GetUrlImageEmbedInfoUrl)} Request: {apiUrl}\r\n{requestData}\r\n");
                 var responseMessage = await HttpClientUtil.PostData(_httpClient, $"{apiUrl}", requestData);
 
-                _logger.LogInformation($"GetUrlImageEmbedInfoUrl Response: {responseMessage}");
+                _logger.LogInformation($"{nameof(GetUrlImageEmbedInfoUrl)} Response: {responseMessage}");
                 if (responseMessage.IsSuccessStatusCode)
                 {
                     var response = await HttpsExtensions.ReturnApiResponse<EmbedInfoResponse>(responseMessage);
                     if (response.Succeeded)
                     {
                         result = response.Data?.PhotoUrl;
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($":GetUrlImageEmbedInfoUrl PhotoUrl: { result}");
-                        Console.ResetColor();
                     }
                     else
                     {
