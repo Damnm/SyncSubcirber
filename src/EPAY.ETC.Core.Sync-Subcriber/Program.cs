@@ -145,7 +145,7 @@ builder.ConfigureServices(async (hostContext, services) =>
         }
 
         Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} - Start process\r\n");
-        Console.WriteLine($"{opt.Message}\r\n");
+        Console.WriteLine($"Message from queue: \r\n{opt.Message}\r\n");
 
         var result = await syncSubcriberService.SyncSubcriber(opt.Message, msgType);
 
@@ -160,13 +160,11 @@ builder.ConfigureServices(async (hostContext, services) =>
     });
 });
 
-
 var host = builder.Build();
 
 try
 {
     host.Run();
-
 }
 catch (Exception ex)
 {

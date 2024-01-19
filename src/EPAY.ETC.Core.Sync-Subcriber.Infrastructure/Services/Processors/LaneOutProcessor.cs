@@ -107,6 +107,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     },
                     Payment = new VehicleLaneOutPaymentRequestModel
                     {
+                        PaymentId = paymentId,
                         TicketType = fee.Payment.TicketType,
                         PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null
                                 : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Contract ? p.Payment.Fee.VehicleCategory.ExternalId : null),

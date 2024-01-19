@@ -19,7 +19,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
         public async Task<string?> GetUrlImageEmbedInfoUrl(HttpClient _httpClient, string apiUrl, ImageEmbedInfoRequest request)
         {
             _logger.LogInformation($"Executing {nameof(GetUrlImageEmbedInfoUrl)} method...");
-            string result = string.Empty;
+            string? result = null;
             try
             {
                 string requestData = JsonConvert.SerializeObject(request);
