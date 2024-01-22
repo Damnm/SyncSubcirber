@@ -87,7 +87,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                                             LaneOutDateTime = trans.LaneOutTransaction.LaneOutDate,
                                             VehicleType = trans.LaneOutTransaction.VehicleDetails?.VehicleTypeName,
                                             PlateNumber = trans.LaneOutTransaction.VehicleDetails?.FrontPlateNumber,
-                                            TicketType = trans.LaneOutTransaction.Payment?.TicketType,
+                                            TicketType = trans.LaneOutTransaction.Payment?.TicketTypeName,
                                             Amount = (decimal)trans.LaneOutTransaction.Payment?.ChargeAmount,
                                             RFID = trans.LaneOutTransaction.VehicleDetails?.RFID,
                                             ImageId = trans.LaneOutTransaction.VehicleDetails?.FrontImage
@@ -141,16 +141,12 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                     if (response.Succeeded)
                     {
                         result = true;
-                        Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("Sync data to BackOffice successfully");
-                        Console.ResetColor();
                         _logger.LogInformation("Sync data to BackOffice successfully");
                     }
                     else
                     {
-                        Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("Error. Sync data to BackOffice failed");
-                        Console.ResetColor();
                         _logger.LogError($"Failed to run {nameof(SyncDataToBackOffice)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}");
                     }    
                 }

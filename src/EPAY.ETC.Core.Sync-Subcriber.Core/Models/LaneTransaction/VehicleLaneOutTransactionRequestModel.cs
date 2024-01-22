@@ -89,5 +89,6 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         public string? ForceTicketType { set; get; }
         public PaymentMethodEnum PaymentMethod { set; get; }
         public Guid PaymentId { set; get; }
+        public string? TicketTypeName { set; get; }
     }
 }

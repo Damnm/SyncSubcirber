@@ -109,6 +109,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     {
                         PaymentId = paymentId,
                         TicketType = fee.Payment.TicketType,
+                        TicketTypeName = fee.Payment.TicketTypeName,
                         PeriodTicketType = p.Payment.Fee.VehicleCategory == null ? null
                                 : (p.Payment.Fee.VehicleCategory.VehicleCategoryType == VehicleCategoryTypeEnum.Contract ? p.Payment.Fee.VehicleCategory.ExternalId : null),
                         ForceTicketType = p.Payment.Fee.VehicleCategory == null ? null
