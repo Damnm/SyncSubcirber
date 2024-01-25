@@ -1,5 +1,4 @@
 ﻿using EPAY.ETC.Core.Models.Constants;
-using EPAY.ETC.Core.Publisher.DependencyInjectionExtensions;
 using EPAY.ETC.Core.RabbitMQ.Common.Enums;
 using EPAY.ETC.Core.RabbitMQ.DependencyInjectionExtensions;
 using EPAY.ETC.Core.Subscriber.Common.Options;
@@ -33,7 +32,7 @@ builder.ConfigureAppConfiguration((hostingContext, config) =>
 builder.ConfigureServices(async (hostContext, services) =>
 {
     SubscriberOptionModel? subscriberOptions = hostContext.Configuration.GetSection("SubscriberConfiguration").Get<SubscriberOptionModel>();
-    services.Configure<ApiEndpointConfig>(hostContext.Configuration.GetSection("Appsettings"));
+    services.Configure<ApiEndpointConfig>(hostContext.Configuration.GetSection("ApiEndpoints"));
 
     services.AddLogging(logBuilder =>
     {
@@ -44,7 +43,7 @@ builder.ConfigureServices(async (hostContext, services) =>
 
     services.AddRabbitMQCore(hostContext.Configuration);
     services.AddRabbitMQSubscriber();
-    services.AddRabbitMQPublisher();
+    //services.AddRabbitMQPublisher();
 
     // Infrastructure config
     services.AddInfrastructure(hostContext.Configuration);
@@ -126,19 +125,14 @@ builder.ConfigureServices(async (hostContext, services) =>
     subscriber.Subscribe(async opt =>
     {
         string msgType = string.Empty;
-
+        string laneId = string.Empty;
         if (opt.Headers != null)
         {
             if (opt.Headers.TryGetValue("MsgType", out object? bytes) && bytes != null)
             {
                 msgType = Encoding.UTF8.GetString((byte[])bytes);
             }
-        }
 
-        string laneId = string.Empty;
-
-        if (opt.Headers != null)
-        {
             if (opt.Headers.TryGetValue(CoreConstant.ENVIRONMENT_LANE_OUT, out object? laneIdBytes) && laneIdBytes != null)
             {
                 laneId = Encoding.UTF8.GetString((byte[])laneIdBytes);

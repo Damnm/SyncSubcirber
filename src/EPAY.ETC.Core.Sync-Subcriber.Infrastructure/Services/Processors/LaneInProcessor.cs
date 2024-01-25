@@ -57,7 +57,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                 LaneOutTransaction = null
             };
 
-            return transaction;
+            return await Task.FromResult(transaction);
         }
 
         public Task<EpayReportTransactionModel?> ProcessEpayReportAsync(FeeRequestModel feeRequest, FeeModel feeEntity)
