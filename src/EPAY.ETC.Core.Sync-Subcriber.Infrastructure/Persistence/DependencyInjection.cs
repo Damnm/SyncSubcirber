@@ -1,5 +1,7 @@
-﻿using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
+﻿using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Repositories;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Processor;
+using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Repositories;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +23,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence
                 ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => { return true; }
             });
 
+            services.AddTransient<IFeeRepository, FeeRepository>();
             services.AddTransient<ILaneProcesscor, LaneOutProcessor>();
             services.AddTransient<ILaneProcesscor, LaneInProcessor>();
 

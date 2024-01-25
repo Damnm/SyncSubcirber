@@ -15,9 +15,8 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils
                 request.Content = new StringContent(data, Encoding.UTF8, "application/json");
                 return await _httpClient.SendAsync(request, CancellationToken.None);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Failed to run {nameof(PostData)} method. Error: {ex.Message}\r\n");
                 throw;
             }
         }

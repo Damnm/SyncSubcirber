@@ -40,6 +40,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         public string? LaneInVehicleRearPhotoUrl { get; set; }
         public string? LaneOutPlateNumberPhotoUrl { get; set; }
         public string? LaneOutVehiclePhotoUrl { get; set; }
+        public string? LaneOutImageEmbedInfoUrl { get; set; }
         public float? ConfidenceScore { get; set; }
         public double Amount { get; set; }
         public Guid? VehicleCategoryId { get; set; }

@@ -1,5 +1,5 @@
 ﻿using EPAY.ETC.Core.Sync_Subcriber.Core.Extensions;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.ImageEmbedInfo;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.HttpClients;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
@@ -16,17 +16,18 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
             _logger = logger;
         }
 
-        public async Task<string?> GetUrlImageEmbedInfoUrl(HttpClient _httpClient, string apiUrl, ImageEmbedInfoRequest request)
+        public async Task<string?> GetImageEmbedInfoUrl(HttpClient _httpClient, string apiUrl, ImageEmbedInfoRequest request)
         {
-            _logger.LogInformation($"Executing {nameof(GetUrlImageEmbedInfoUrl)} method...");
+            _logger.LogInformation($"Executing {nameof(GetImageEmbedInfoUrl)} method...");
             string? result = null;
+            string errMessage = string.Empty;
             try
             {
                 string requestData = JsonConvert.SerializeObject(request);
-                _logger.LogInformation($"{nameof(GetUrlImageEmbedInfoUrl)} Request: {apiUrl}\r\n{requestData}\r\n");
+                _logger.LogInformation($"{nameof(GetImageEmbedInfoUrl)} Request: {apiUrl}\r\n{requestData}\r\n");
                 var responseMessage = await HttpClientUtil.PostData(_httpClient, $"{apiUrl}", requestData);
 
-                _logger.LogInformation($"{nameof(GetUrlImageEmbedInfoUrl)} Response: {responseMessage}");
+                _logger.LogInformation($"{nameof(GetImageEmbedInfoUrl)} Response: {responseMessage}");
                 if (responseMessage.IsSuccessStatusCode)
                 {
                     var response = await HttpsExtensions.ReturnApiResponse<EmbedInfoResponse>(responseMessage);
@@ -36,28 +37,24 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services
                     }
                     else
                     {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Error. Get embed info image failed");
-                        Console.ResetColor();
-                        string logMessage = $"Failed to {nameof(GetUrlImageEmbedInfoUrl)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}";
-                        _logger.LogError(logMessage);
+                        errMessage = $"Failed to {nameof(GetImageEmbedInfoUrl)} method message: {response.Errors.FirstOrDefault().Message}, errorCode: {response.Errors.FirstOrDefault().Code}";
                     }
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Error. Get embed info image failed");
-                    Console.ResetColor();
-                    string logMessage = $"Failed to {nameof(GetUrlImageEmbedInfoUrl)} method. Error: {responseMessage.StatusCode}";
-                    _logger.LogError(logMessage);
+                    errMessage = $"Failed to {nameof(GetImageEmbedInfoUrl)} method. Error: {responseMessage.StatusCode}";
                 }
+
+                Console.WriteLine(errMessage);
+                _logger.LogError(errMessage);
 
                 return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error. Get embed info image failed");
-                _logger.LogError($"Failed to run {nameof(GetUrlImageEmbedInfoUrl)} method. Error: {ex.Message}");
+                errMessage = $"Failed to run {nameof(GetImageEmbedInfoUrl)} method. Error: {ex.Message}";
+                Console.WriteLine(errMessage);
+                _logger.LogError(errMessage);
                 return result;
             }
         }

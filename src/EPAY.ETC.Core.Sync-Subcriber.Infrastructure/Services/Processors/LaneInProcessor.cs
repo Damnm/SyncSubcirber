@@ -1,10 +1,12 @@
 ﻿using EPAY.ETC.Core.Models.Fees;
 using EPAY.ETC.Core.Models.Utils;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Constants;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Utils;
 using Microsoft.Extensions.Configuration;
+using FeeModel = EPAY.ETC.Core.Sync_Subcriber.Core.Models.Entities.FeeModel;
+using FeeRequestModel = EPAY.ETC.Core.Models.Fees.FeeModel;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
 {
@@ -23,33 +25,33 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
         {
             return msgType == Constant.MsgTypeIn;
         }
-        public async Task<VehicleLaneTransactionRequestModel> ProcessAsync(FeeModel fee, LaneInVehicleModel laneIn)
+        public async Task<VehicleLaneTransactionRequestModel?> ProcessAsync(FeeRequestModel feeRequest, FeeModel feeEntity, LaneInVehicleModel laneInRequest)
         {
             VehicleLaneTransactionRequestModel transaction = new VehicleLaneTransactionRequestModel
             {
                 LaneInTransaction = new VehicleLaneInTransactionRequestModel()
                 {
-                    TransactionId = $"Trans{laneIn.Epoch}",
+                    TransactionId = $"Trans{laneInRequest.Epoch}",
                     StationId = stationId,
-                    LaneId = $"{stationId}{int.Parse(laneIn.LaneInId ?? "01"):D2}",
+                    LaneId = $"{stationId}{int.Parse(laneInRequest.LaneInId ?? "01"):D2}",
                     ShiftId = "030101",
-                    LaneInDate = laneIn.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName),
+                    LaneInDate = laneInRequest.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName),
                     TCPCheckPoint = string.Empty,
-                    VehicleDetails = laneIn.VehicleInfo == null
-                        ? new VehicleLaneInDetailRequestModel { RFID = laneIn.RFID }
+                    VehicleDetails = laneInRequest.VehicleInfo == null
+                        ? new VehicleLaneInDetailRequestModel { RFID = laneInRequest.RFID }
                         : new VehicleLaneInDetailRequestModel()
                         {
-                            RFID = laneIn.RFID,
-                            FrontPlateColour = laneIn.VehicleInfo.PlateColour,
-                            RearPlateColour = laneIn.VehicleInfo.RearPlateColour,
-                            FrontPlateNumber = laneIn.VehicleInfo.PlateNumber,
-                            RearPlateNumber = laneIn.VehicleInfo.RearPlateNumber,
-                            FrontImage = laneIn.VehicleInfo.VehiclePhotoUrl,
-                            FrontPlateNumberImage = laneIn.VehicleInfo.PlateNumberPhotoUrl,
-                            RearImage = laneIn.VehicleInfo.VehicleRearPhotoUrl,
-                            RearPlateNumberImage = laneIn.VehicleInfo.PlateNumberRearPhotoUrl,
+                            RFID = laneInRequest.RFID,
+                            FrontPlateColour = laneInRequest.VehicleInfo.PlateColour,
+                            RearPlateColour = laneInRequest.VehicleInfo.RearPlateColour,
+                            FrontPlateNumber = laneInRequest.VehicleInfo.PlateNumber,
+                            RearPlateNumber = laneInRequest.VehicleInfo.RearPlateNumber,
+                            FrontImage = laneInRequest.VehicleInfo.VehiclePhotoUrl,
+                            FrontPlateNumberImage = laneInRequest.VehicleInfo.PlateNumberPhotoUrl,
+                            RearImage = laneInRequest.VehicleInfo.VehicleRearPhotoUrl,
+                            RearPlateNumberImage = laneInRequest.VehicleInfo.PlateNumberRearPhotoUrl,
                             ImageExtension = "JPG",
-                            VehicleTypeId = laneIn.VehicleInfo.VehicleType?.ConvertVehicleType(),
+                            VehicleTypeId = laneInRequest.VehicleInfo.VehicleType?.ConvertVehicleType(),
                         },
                 },
                 LaneOutTransaction = null
@@ -58,7 +60,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
             return transaction;
         }
 
-        public Task<EpayReportTransactionModel?> ProcessEpayReportAsync(FeeModel fee)
+        public Task<EpayReportTransactionModel?> ProcessEpayReportAsync(FeeRequestModel feeRequest, FeeModel feeEntity)
         {
             throw new NotImplementedException();
         }

@@ -2,7 +2,7 @@
 using EPAY.ETC.Core.Publisher.Common.Options;
 using EPAY.ETC.Core.Publisher.Interface;
 using EPAY.ETC.Core.RabbitMQ.Common.Events;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services;
 using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Enums;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.Options;
 using Microsoft.Extensions.Logging;

@@ -1,4 +1,4 @@
-﻿namespace EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface
+﻿namespace EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services
 {
     public interface ISyncSubcriberService
     {

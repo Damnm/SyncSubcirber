@@ -5,8 +5,8 @@ using EPAY.ETC.Core.RabbitMQ.DependencyInjectionExtensions;
 using EPAY.ETC.Core.Subscriber.Common.Options;
 using EPAY.ETC.Core.Subscriber.DependencyInjectionExtensions;
 using EPAY.ETC.Core.Subscriber.Interface;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface.Processor;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.Configs;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
@@ -27,11 +27,13 @@ builder.ConfigureAppConfiguration((hostingContext, config) =>
 {
     config.AddJsonFile($"appsettings.json", optional: false, reloadOnChange: true);
     config.AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true);
+    
 });
 
 builder.ConfigureServices(async (hostContext, services) =>
 {
     SubscriberOptionModel? subscriberOptions = hostContext.Configuration.GetSection("SubscriberConfiguration").Get<SubscriberOptionModel>();
+    services.Configure<ApiEndpointConfig>(hostContext.Configuration.GetSection("Appsettings"));
 
     services.AddLogging(logBuilder =>
     {
@@ -49,7 +51,7 @@ builder.ConfigureServices(async (hostContext, services) =>
     services.AddAutoMapper(typeof(Program));
 
     services.AddDbContext<CoreDbContext>(
-        opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
+        opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Transient);
 
     var serviceProvider = services.BuildServiceProvider();
 
@@ -63,7 +65,7 @@ builder.ConfigureServices(async (hostContext, services) =>
 
     ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
     ILaneProcesscor laneProcesscor = serviceProvider.GetRequiredService<ILaneProcesscor>();
-    IImageService iamgeService= serviceProvider.GetRequiredService<IImageService>();
+    IImageService iamgeService = serviceProvider.GetRequiredService<IImageService>();
     ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
     ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
@@ -146,6 +148,7 @@ builder.ConfigureServices(async (hostContext, services) =>
 
         Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} - Start process\r\n");
         Console.WriteLine($"Message from queue: \r\n{opt.Message}\r\n");
+        _logger.LogInformation($"Message from queue: \r\n{opt.Message}\r\n");
 
         var result = await syncSubcriberService.SyncSubcriber(opt.Message, msgType);
 
