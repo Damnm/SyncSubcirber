@@ -90,7 +90,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                         LaneId = $"{_stationId}{int.Parse(feeRequest.LaneOutVehicle.LaneOutId ?? "01"):D2}",
                         EmployeeId = feeRequest.EmployeeId,
                         LaneOutDate = feeRequest.LaneOutVehicle.Epoch.ToSpecificDateTime(Constant.AsianTimeZoneName),
-                        ShiftId = "030101",
+                        ShiftId = "030101", // Ca sẽ được query từ DB Toll Admin dựa vào LaneOutDate (xử lý trong api Toll Admin)
                         IsOCRSuccessful = !string.IsNullOrEmpty(feeRequest.LaneOutVehicle.VehicleInfo.PlateNumber) || !string.IsNullOrEmpty(feeRequest.LaneOutVehicle.VehicleInfo.RearPlateNumber),
                         VehicleDetails = new VehicleLaneOutDetailRequestModel
                         {
@@ -157,6 +157,9 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Services.Processors
                     transaction.Fee.LaneInVehicleRearPhotoUrl = feeRequest.LaneInVehicle?.VehicleInfo?.VehicleRearPhotoUrl;
                     transaction.Fee.VehicleChargeType = feeRequest.LaneOutVehicle?.VehicleChargeType.ToString();
                     transaction.Fee.VehicleChargeTypeName = feeRequest.LaneOutVehicle?.VehicleChargeType.ToEnumMemberAttrValue();
+
+                    transaction.Fee.Amount = feeRequest.Payment.Amount;
+                    transaction.Payment.Amount = feeRequest.Payment.Amount;
                 }
 
                 return await Task.FromResult(transaction);

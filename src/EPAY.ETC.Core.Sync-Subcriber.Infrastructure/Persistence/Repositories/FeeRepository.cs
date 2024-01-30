@@ -36,19 +36,12 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Repositories
                     .Include(f => f.VehicleCategory)
                     .Include(f => f.TicketType)
                     .Include(f => f.ParkingLogs)
-                    //.Select(f => new EpayReportTransactionModel()
-                    //{
-                    //    Fee = _mapper.Map<EpayReportFeeModel>(f),
-                    //    Payment = f.Payments.Any() ? _mapper.Map<EpayReportPaymentModel>(f.Payments.First()) : null,
-                    //    ParkingLog = f.ParkingLogs.Any() ? _mapper.Map<EpayReportParkingLogModel>(f.ParkingLogs.First()) : null
-                    //})
                     .FirstOrDefaultAsync();
 
                 return result;
             }
             catch (Exception)
             {
-
                 throw;
             }
 
