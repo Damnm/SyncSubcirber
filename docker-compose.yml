@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  epay.etc.core.sync-data:
+    image: thanhpmelb/epay.etc.core.sync-subscriber:latest
+    container_name: epay.etc.core.sync-data
+    environment:
+    - ASPNETCORE_ENVIRONMENT=Development
+    - ADMIN_API_BASE_ENVIRONMENT=http://10.10.74.40/api/
+    - EPAY_REPORT_API_BASE_ENVIRONMENT=http://10.10.74.67:8899/api/
+    - LANEOUTID_ENVIRONMENT=1
+    restart: always

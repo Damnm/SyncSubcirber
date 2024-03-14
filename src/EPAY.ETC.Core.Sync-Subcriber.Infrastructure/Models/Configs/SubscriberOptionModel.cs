@@ -2,7 +2,7 @@
 using EPAY.ETC.Core.Subscriber.Common.Options;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.Configs
-{ 
+{
     public class SubscriberOptionModel
     {
         #region Common options

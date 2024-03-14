@@ -1,5 +1,4 @@
 ﻿using EPAY.ETC.Core.Models.Enums;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
@@ -13,6 +12,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         public DateTime LaneOutDate { set; get; }
         public string ShiftId { set; get; }
         public bool IsOCRSuccessful { set; get; }
+        public string? ParkingCode { set; get; }
         public VehicleLaneOutDetailRequestModel VehicleDetails { set; get; }
         public VehicleLaneOutPaymentRequestModel Payment { set; get; }
         public List<TCPTransactionRequestModel>? TCPTransactions { get; set; }
@@ -52,11 +52,13 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         public string? RFID { set; get; }
         [MaxLength(6)]
         public string? VehicleTypeId { set; get; }
+        public string? VehicleTypeName { set; get; }
         [MaxLength(50)]
         public string? FrontPlateColour { set; get; }
         [MaxLength(15)]
         public string? FrontPlateNumber { set; get; }
         public string? FrontImage { set; get; }
+        public string? LaneOutImageEmbedInfoURL { set; get; }
         public string? FrontPlateNumberImage { set; get; }
         [MaxLength(5)]
         public string? ImageExtension { set; get; }
@@ -86,5 +88,7 @@ namespace EPAY.ETC.Core.Sync_Subcriber.Core.Models.LaneTransaction
         [MaxLength(6)]
         public string? ForceTicketType { set; get; }
         public PaymentMethodEnum PaymentMethod { set; get; }
+        public Guid PaymentId { set; get; }
+        public string? TicketTypeName { set; get; }
     }
 }

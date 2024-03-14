@@ -1,11 +1,11 @@
 ﻿using EPAY.ETC.Core.Models.Constants;
-using EPAY.ETC.Core.Publisher.DependencyInjectionExtensions;
 using EPAY.ETC.Core.RabbitMQ.Common.Enums;
 using EPAY.ETC.Core.RabbitMQ.DependencyInjectionExtensions;
 using EPAY.ETC.Core.Subscriber.Common.Options;
 using EPAY.ETC.Core.Subscriber.DependencyInjectionExtensions;
 using EPAY.ETC.Core.Subscriber.Interface;
-using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Interface;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services;
+using EPAY.ETC.Core.Sync_Subcriber.Core.Interface.Services.Processor;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Models.Configs;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence;
 using EPAY.ETC.Core.Sync_Subcriber.Infrastructure.Persistence.Context;
@@ -26,11 +26,13 @@ builder.ConfigureAppConfiguration((hostingContext, config) =>
 {
     config.AddJsonFile($"appsettings.json", optional: false, reloadOnChange: true);
     config.AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true);
+    
 });
 
 builder.ConfigureServices(async (hostContext, services) =>
 {
     SubscriberOptionModel? subscriberOptions = hostContext.Configuration.GetSection("SubscriberConfiguration").Get<SubscriberOptionModel>();
+    services.Configure<ApiEndpointConfig>(hostContext.Configuration.GetSection("ApiEndpoints"));
 
     services.AddLogging(logBuilder =>
     {
@@ -41,15 +43,14 @@ builder.ConfigureServices(async (hostContext, services) =>
 
     services.AddRabbitMQCore(hostContext.Configuration);
     services.AddRabbitMQSubscriber();
+    //services.AddRabbitMQPublisher();
 
     // Infrastructure config
     services.AddInfrastructure(hostContext.Configuration);
     services.AddAutoMapper(typeof(Program));
 
     services.AddDbContext<CoreDbContext>(
-        opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
-
-    services.AddHttpClient();
+        opt => opt.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Transient);
 
     var serviceProvider = services.BuildServiceProvider();
 
@@ -62,7 +63,8 @@ builder.ConfigureServices(async (hostContext, services) =>
     LogManager.Setup().LoadConfigurationFromFile(configFile);
 
     ISubscriberService subscriber = serviceProvider.GetRequiredService<ISubscriberService>();
-    ISyncService syncService = serviceProvider.GetRequiredService<ISyncService>();
+    ILaneProcesscor laneProcesscor = serviceProvider.GetRequiredService<ILaneProcesscor>();
+    IImageService iamgeService = serviceProvider.GetRequiredService<IImageService>();
     ISyncSubcriberService syncSubcriberService = serviceProvider.GetRequiredService<ISyncSubcriberService>();
     ILogger<Program> _logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
@@ -72,6 +74,7 @@ builder.ConfigureServices(async (hostContext, services) =>
         option.CreateExchangeQueue = subscriberOptions?.CreateExchangeQueue ?? false;
         option.ExchangeOrQueue = subscriberOptions?.ExchangeOrQueue ?? ExchangeOrQueueEnum.Queue;
         option.AutoAck = subscriberOptions?.AutoAck ?? true;
+        option.PrefetchCount = 1;
         /***** End common options *******/
 
         /***** Exchange options *******/
@@ -86,6 +89,22 @@ builder.ConfigureServices(async (hostContext, services) =>
         /***** End exchange options *******/
 
         /***** Queue options *******/
+        string laneId = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT) ?? "1";
+        var queueOptions = subscriberOptions.QueueOptions.Select(x =>
+        {
+            if (laneId != "1")
+            {
+                string newQueueName = $"{x.QueueName}_{laneId}";
+                x.DeadLetterRoutingKey = x.DeadLetterRoutingKey.Replace(x.QueueName, newQueueName);
+                x.QueueName = newQueueName;
+
+                if (x.BindArguments.ContainsKey(CoreConstant.RABBIT_HEADER_PROP_LANEID))
+                    x.BindArguments[CoreConstant.RABBIT_HEADER_PROP_LANEID] = Environment.GetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT) ?? x.BindArguments[CoreConstant.RABBIT_HEADER_PROP_LANEID];
+            }
+
+            return x;
+        });
+
         foreach (var queueOption in subscriberOptions?.QueueOptions ?? new List<QueueOption>())
         {
             option.QueueOptions.Add(new QueueOption()
@@ -106,42 +125,46 @@ builder.ConfigureServices(async (hostContext, services) =>
     subscriber.Subscribe(async opt =>
     {
         string msgType = string.Empty;
-
+        string laneId = string.Empty;
         if (opt.Headers != null)
         {
             if (opt.Headers.TryGetValue("MsgType", out object? bytes) && bytes != null)
             {
                 msgType = Encoding.UTF8.GetString((byte[])bytes);
             }
-        }
 
-        string laneId = string.Empty;
-
-        if (opt.Headers != null)
-        {
-            if (opt.Headers.TryGetValue(CoreConstant.ENVIRONMENT_LANE, out object? laneIdBytes) && laneIdBytes != null)
+            if (opt.Headers.TryGetValue(CoreConstant.ENVIRONMENT_LANE_OUT, out object? laneIdBytes) && laneIdBytes != null)
             {
                 laneId = Encoding.UTF8.GetString((byte[])laneIdBytes);
-                Environment.SetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE, laneId);
+                Environment.SetEnvironmentVariable(CoreConstant.ENVIRONMENT_LANE_OUT, laneId);
             }
         }
 
-        Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} {opt.Message}");
+        Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} - Start process\r\n");
+        Console.WriteLine($"Message from queue: \r\n{opt.Message}\r\n");
+        _logger.LogInformation($"Message from queue: \r\n{opt.Message}\r\n");
 
         var result = await syncSubcriberService.SyncSubcriber(opt.Message, msgType);
 
         await Task.Yield();
 
-        Console.WriteLine($"Time {DateTime.UtcNow.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} Processed done");
+        Console.WriteLine($"Time {DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss:fffff")} {msgType} {opt.DeliveryTag} - Processed done\r\n");
 
         if (result)
-            subscriber.Acknowledge(opt.DeliveryTag);
+            subscriber.Acknowledge(opt.ConsumerTag, opt.DeliveryTag);
         else
-            subscriber.NotAcknowledge(opt.DeliveryTag);
+            subscriber.NotAcknowledge(opt.ConsumerTag, opt.DeliveryTag);
     });
 });
 
-
 var host = builder.Build();
 
-host.Run();
+try
+{
+    host.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine(ex.ToString());
+}
+
